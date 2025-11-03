@@ -1,0 +1,21 @@
+{
+  "name": "Platform Pro",
+  "short_name": "PlatformPro",
+  "description": "The essential toolkit for competitive powerlifters and coaches, designed to plan and execute on meet day.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#e2e8f0",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192' fill='none'%3e%3crect width='192' height='192' rx='32' fill='%230f172a'/%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='14' d='M28 96h136M64 64h64M64 128h64'/%3e%3c/svg%3e",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512' fill='none'%3e%3crect width='512' height='512' rx='85.33' fill='%230f172a'/%3e%3cpath stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='37.33' d='M74.67 256h362.66M170.67 170.67h170.66M170.67 341.33h170.66'/%3e%3c/svg%3e",
+      "sizes": "512x512",
+      "type": "image/svg+xml"
+    }
+  ]
+}
