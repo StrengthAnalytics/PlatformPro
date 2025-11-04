@@ -1,10 +1,10 @@
-# Platform Pro
+# Platform Coach
 
-This document provides a comprehensive overview of the Platform Pro application, detailing its features, technical architecture, and core logic. It is intended to be a living document, updated with each functional change to the application.
+This document provides a comprehensive overview of the Platform Coach application, detailing its features, technical architecture, and core logic. It is intended to be a living document, updated with each functional change to the application.
 
 ## 1. Project Overview
 
-Platform Pro is a suite of powerful, client-side tools designed for powerlifters, strength athletes, and their coaches. The primary goal is to streamline the planning, execution, and analysis of training and competition. The application is a Progressive Web App (PWA) built to work offline, ensuring reliability on competition day where internet connectivity may be unstable.
+Platform Coach is a suite of powerful, client-side tools designed for powerlifters, strength athletes, and their coaches. The primary goal is to streamline the planning, execution, and analysis of training and competition. The application is a Progressive Web App (PWA) built to work offline, ensuring reliability on competition day where internet connectivity may be unstable.
 
 ---
 
@@ -123,6 +123,30 @@ A dual-function tool for estimating strength and prescribing training weights.
     -   `migration.ts`: Handles state versioning, ensuring that data stored in `localStorage` from older versions of the app can be safely upgraded to the latest structure.
 -   `App.tsx`: The root component that manages state and orchestrates the entire application.
 -   `state.ts`: Defines the initial shape and default values for the application state.
+
+---
+
+## 4. Development & Deployment
+
+### 4.1. Local Development
+
+The project is set up using Vite. To run the development server:
+
+1.  Install dependencies: `npm install`
+2.  Start the server: `npm run dev`
+
+### 4.2. Dependency Management & Reproducible Builds
+
+-   **`package-lock.json`**: This file is critical for ensuring the stability and reproducibility of the application. It records the exact version of every dependency installed.
+-   **Commitment to Repository**: The `package-lock.json` file **must be committed** to the version control repository. This guarantees that every developer and every build environment (like GitHub Actions or Vercel) uses the exact same dependency versions, preventing "it works on my machine" issues and ensuring consistent builds.
+
+### 4.3. Deployment
+
+The application is configured for continuous deployment to GitHub Pages via a GitHub Actions workflow defined in `.github/workflows/deploy.yml`. On every push to the `main` branch, the workflow will automatically:
+
+1.  Install dependencies using `npm install`.
+2.  Build the production-ready static files using `npm run build`.
+3.  Deploy the contents of the `dist` folder to GitHub Pages.
 
 ---
 *This README is automatically updated with significant changes to the application's functionality or architecture.*

@@ -76,7 +76,7 @@ const helpContent = {
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Stepped</h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Uses equal jumps between all three attempts. A very predictable and stable progression.</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">Uses equal, predictable jumps between all three attempts. A very predictable and stable progression.</p>
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Conservative</h4>
@@ -626,7 +626,7 @@ const App: React.FC = () => {
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
   const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
-  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', homescreen: 'PLATFORM PRO' };
+  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', homescreen: 'PLATFORM COACH' };
 
   return (
     <div className="font-sans bg-gradient-to-br from-[#0066FF] to-[#0044AA] min-h-screen">
