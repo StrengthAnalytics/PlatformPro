@@ -72,13 +72,6 @@
         --bg-color-translucent: rgba(30, 41, 59, 0.8);
       }
     </style>
-    <script type="module">
-      import memberstackDOM from "https://cdn.jsdelivr.net/npm/@memberstack/dom@1/+esm";
-      
-      const memberstack = memberstackDOM.init({
-        publicKey: "pk_6df128fc0c66f4626d0b",
-      });
-    </script>
   <script type="importmap">
 {
   "imports": {
@@ -89,15 +82,23 @@
     "jspdf-autotable": "https://aistudiocdn.com/jspdf-autotable@^3.8.2",
     "jspdf/": "https://aistudiocdn.com/jspdf@^3.0.3/",
     "vite": "https://aistudiocdn.com/vite@^7.1.7",
-    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.3"
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.0.3",
+    "@memberstack/dom": "https://cdn.jsdelivr.net/npm/@memberstack/dom@3/dist/index.mjs"
   }
 }
+</script>
+<script type="module">
+  import memberstackDOM from '@memberstack/dom';
+  
+  window.memberstack = memberstackDOM.init({
+    publicKey: "pk_6df128fc0c66f4626d0b",
+  });
 </script>
 <link rel="stylesheet" href="/index.css">
 </head>
   <body class="bg-slate-100 dark:bg-slate-900">
     <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.min.js"></script>
-    <div id="root" data-ms-content="members"></div>
+    <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>
 </html>
