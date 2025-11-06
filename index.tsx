@@ -1,6 +1,12 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
+import memberstackDOM from '@memberstack/dom';
+
+// Initialize Memberstack
+window.memberstack = memberstackDOM.init({
+  publicKey: "pk_6df128fc0c66f4626d0b",
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
