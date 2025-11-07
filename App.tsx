@@ -22,12 +22,19 @@ import TechniqueScoreCalculator from './components/TechniqueScoreCalculator';
 import WorkoutTimer from './components/WorkoutTimer';
 import ModeToggle from './components/ModeToggle';
 import InfoIcon from './components/InfoIcon';
+import IconButton from './components/IconButton';
+import TrialBanner from './components/TrialBanner';
 import { calculateAttempts, generateWarmups, calculateScore } from './utils/calculator';
 import { exportToCSV, exportToPDF, exportToMobilePDF, savePdf, sharePdf } from './utils/exportHandler';
 import { IPF_WEIGHT_CLASSES } from './constants';
 import { initialAppState, deriveGameDayStateFromLifts } from './state';
 import { migrateState } from './utils/migration';
 import type { AppState, LiftType, LiftState, CompetitionDetails, EquipmentSettings, BrandingState, WarmupStrategy, GameDayLiftState, LiftsState, PlanData, ScoringFormula, AttemptStrategy } from './types';
+
+// --- DEVELOPMENT MODE SWITCH ---
+// Set to `true` to bypass the login screen and see the app directly.
+// Set to `false` to test the real user login/signup flow.
+const IS_DEVELOPMENT_MODE = false;
 
 const isPlanData = (data: any): data is PlanData => {
   return (
@@ -94,6 +101,7 @@ const helpContent = {
 };
 
 const App: React.FC = () => {
+  const [authState, setAuthState] = useState<{ loading: boolean; member: any | null }>({ loading: !IS_DEVELOPMENT_MODE, member: null });
   const [appState, setAppState] = useState<AppState>(initialAppState);
   const [currentView, setCurrentView] = useState<'homescreen' | 'planner' | 'oneRepMax' | 'warmupGenerator' | 'velocityProfile' | 'techniqueScore' | 'workoutTimer'>('homescreen');
   const [viewMode, setViewMode] = useState<'pro' | 'lite'>('pro');
@@ -119,6 +127,28 @@ const App: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileChangeCallbackRef = useRef<((e: React.ChangeEvent<HTMLInputElement>) => void) | null>(null);
 
+  useEffect(() => {
+    if (IS_DEVELOPMENT_MODE) {
+      return;
+    }
+
+    const checkMember = async () => {
+      // Memberstack might not be initialized on the first render
+      if (window.memberstack) {
+        try {
+          const member = await window.memberstack.getMember();
+          setAuthState({ loading: false, member });
+        } catch (error) {
+          console.error("Error fetching member:", error);
+          setAuthState({ loading: false, member: null });
+        }
+      } else {
+        // Retry if window.memberstack is not ready
+        setTimeout(checkMember, 100);
+      }
+    };
+    checkMember();
+  }, []);
 
   useEffect(() => {
     try {
@@ -580,6 +610,27 @@ const App: React.FC = () => {
     )
   };
   
+  if (authState.loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900">
+        <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">Loading Application...</p>
+      </div>
+    );
+  }
+
+  if (!IS_DEVELOPMENT_MODE && !authState.member) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 dark:bg-slate-900 p-8 text-center">
+        <h1 className="text-3xl font-bold text-slate-800 dark:text-slate-100 mb-4">Welcome to Platform Coach</h1>
+        <p className="text-slate-600 dark:text-slate-300 mb-8 max-w-md">The essential toolkit for competitive powerlifters and coaches. Please sign up or log in to continue.</p>
+        <div className="flex gap-4">
+          <IconButton data-ms-modal="signup">Sign Up</IconButton>
+          <IconButton data-ms-modal="login" variant="secondary">Log In</IconButton>
+        </div>
+      </div>
+    );
+  }
+
   // --- Render authenticated app ---
   const { details, lifts } = appState;
 
@@ -623,6 +674,16 @@ const App: React.FC = () => {
   };
   const renderSelectGroup = (label: string, id: keyof EquipmentSettings, options: string[]) => <div className="flex flex-col"><label htmlFor={id} className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">{label}</label><select id={id} value={appState.equipment[id]} onChange={e => handleEquipmentChange(id, e.target.value)} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600"><option value="">Select option</option>{options.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select></div>;
   const renderMobileScore = () => { if (predictedTotal <= 0) return '--'; if (isNaN(bw) || bw <= 0) return <span className="text-base text-yellow-400">Enter BW</span>; if (!gender) return <span className="text-base text-yellow-400">Select Gender</span>; return score.toFixed(2); };
+  
+  const trialPlan = authState.member?.plans.find((p: any) => p.plan.id === "pln_free-trial-iz3308k2");
+  let daysRemaining: number | null = null;
+  if (trialPlan && trialPlan.status === "trialing" && trialPlan.trialEndsAt) {
+      const trialEndDate = new Date(trialPlan.trialEndsAt);
+      const now = new Date();
+      const diffTime = trialEndDate.getTime() - now.getTime();
+      daysRemaining = Math.max(0, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+  }
+
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
   const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
@@ -630,6 +691,7 @@ const App: React.FC = () => {
 
   return (
     <div className="font-sans bg-gradient-to-br from-[#0066FF] to-[#0044AA] min-h-screen">
+      {daysRemaining !== null && <TrialBanner daysRemaining={daysRemaining} />}
       <input type="file" ref={fileInputRef} onChange={onFileInputChange} className="hidden" aria-hidden="true" />
       <header className="bg-slate-900 text-white p-6 shadow-xl">
         <div className="max-w-7xl mx-auto">
