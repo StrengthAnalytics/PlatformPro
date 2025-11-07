@@ -1,9 +1,3 @@
-declare global {
-  interface Window {
-    memberstack: any;
-  }
-}
-
 // FIX: Removed the conflicting import statement. This file defines the types, so it should not import them.
 
 export type LiftType = 'squat' | 'bench' | 'deadlift';

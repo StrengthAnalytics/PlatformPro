@@ -9,7 +9,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@memberstack/dom": "latest",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.8.2",
     "react": "^18.2.0",
