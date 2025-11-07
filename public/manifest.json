@@ -1,0 +1,35 @@
+{
+  "name": "Platform Coach",
+  "short_name": "Platform Coach",
+  "description": "The essential toolkit for competitive powerlifters and coaches, designed to plan and execute on meet day.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0066ff",
+  "theme_color": "#0066ff",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3e%3crect width='192' height='192' fill='%230066ff'/%3e%3ctext x='96' y='130' font-family='Arial, sans-serif' font-size='80' font-weight='bold' fill='white' text-anchor='middle'%3ePC%3c/text%3e%3c/svg%3e",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3e%3crect width='192' height='192' fill='%230066ff'/%3e%3ctext x='96' y='130' font-family='Arial, sans-serif' font-size='80' font-weight='bold' fill='white' text-anchor='middle'%3ePC%3c/text%3e%3c/svg%3e",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3e%3crect width='512' height='512' fill='%230066ff'/%3e%3ctext x='256' y='350' font-family='Arial, sans-serif' font-size='220' font-weight='bold' fill='white' text-anchor='middle'%3ePC%3c/text%3e%3c/svg%3e",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3e%3crect width='512' height='512' fill='%230066ff'/%3e%3ctext x='256' y='350' font-family='Arial, sans-serif' font-size='220' font-weight='bold' fill='white' text-anchor='middle'%3ePC%3c/text%3e%3c/svg%3e",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
