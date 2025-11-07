@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import memberstackDOM from '@memberstack/dom';
 import Section from './components/Section';
 import LiftSection from './components/LiftSection';
 import SaveLoadSection from './components/SaveLoadSection';
@@ -130,29 +129,22 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (IS_DEVELOPMENT_MODE) {
-      // No auth check needed in dev mode, proceed directly to app
       setAuthState({ loading: false, member: null });
       return;
     }
 
-    const initMemberstack = async () => {
+    const getMember = async () => {
       try {
-        const memberstack = await memberstackDOM.init({
-          publicKey: "pk_6df128fc0c66f4626d0b",
-        });
-        window.memberstack = memberstack;
-
-        // FIX: The `getMember` method does not exist on the type for the `memberstack` instance.
-        // Using `getMemberJSON()` which is the correct method for older versions of the library to retrieve member data.
-        const member = await memberstack.getMemberJSON();
+        // Memberstack is initialized in index.tsx, so we can get the member directly.
+        const member = await window.memberstack.getMemberJSON();
         setAuthState({ loading: false, member });
       } catch (error) {
-        console.error("Error initializing Memberstack or getting member:", error);
+        console.error("Error getting Memberstack member:", error);
         setAuthState({ loading: false, member: null });
       }
     };
 
-    initMemberstack();
+    getMember();
   }, []);
 
   useEffect(() => {
