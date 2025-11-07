@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import memberstackDOM from '@memberstack/dom';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -10,20 +9,11 @@ if (!rootElement) {
 
 const root = ReactDOM.createRoot(rootElement);
 
-const main = async () => {
-  // Initialize Memberstack asynchronously
-  window.memberstack = await memberstackDOM.init({
-    publicKey: "pk_6df128fc0c66f4626d0b",
-  });
-
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
-};
-
-main();
+root.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>
+);
 
 // Register the service worker for PWA functionality
 if ('serviceWorker' in navigator) {

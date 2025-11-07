@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import memberstackDOM from '@memberstack/dom';
 import Section from './components/Section';
 import LiftSection from './components/LiftSection';
 import SaveLoadSection from './components/SaveLoadSection';
@@ -129,25 +130,29 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (IS_DEVELOPMENT_MODE) {
+      // No auth check needed in dev mode, proceed directly to app
+      setAuthState({ loading: false, member: null });
       return;
     }
 
-    const checkMember = async () => {
-      // Memberstack might not be initialized on the first render
-      if (window.memberstack) {
-        try {
-          const member = await window.memberstack.getMember();
-          setAuthState({ loading: false, member });
-        } catch (error) {
-          console.error("Error fetching member:", error);
-          setAuthState({ loading: false, member: null });
-        }
-      } else {
-        // Retry if window.memberstack is not ready
-        setTimeout(checkMember, 100);
+    const initMemberstack = async () => {
+      try {
+        const memberstack = await memberstackDOM.init({
+          publicKey: "pk_6df128fc0c66f4626d0b",
+        });
+        window.memberstack = memberstack;
+
+        // FIX: The `getMember` method does not exist on the type for the `memberstack` instance.
+        // Using `getMemberJSON()` which is the correct method for older versions of the library to retrieve member data.
+        const member = await memberstack.getMemberJSON();
+        setAuthState({ loading: false, member });
+      } catch (error) {
+        console.error("Error initializing Memberstack or getting member:", error);
+        setAuthState({ loading: false, member: null });
       }
     };
-    checkMember();
+
+    initMemberstack();
   }, []);
 
   useEffect(() => {
@@ -430,7 +435,7 @@ const App: React.FC = () => {
   };
 
   const handleCollarToggle = (lift: LiftType) => {
-    setAppState(prev => ({ ...prev, lifts: { ...prev.lifts, [lift]: { ...prev.lifts[lift], includeCollars: !prev.lifts[lift].includeCollars }}, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], includeCollars: !prev.gameDayState[lift].includeCollars }}}));
+    setAppState(prev => ({ ...prev, lifts: { ...prev.lifts, [lift]: { ...prev.lifts[lift], includeCollars: !prev.lifts[lift].includeCollars }}, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], includeCollars: !prev.lifts[lift].includeCollars }}}));
     setIsDirty(true);
   };
 
