@@ -805,7 +805,7 @@ const ConfigurationScreen = ({
     voiceGender, setVoiceGender,
     alert1, setAlert1, alert2, setAlert2, alert3, setAlert3,
     alert4, setAlert4, alert5, setAlert5, alert6, setAlert6,
-    savedTimers, loadTimer, saveTimer,
+    savedTimers, loadTimer, saveTimer, onImport,
     loadedTimerId,
     onStart,
     onHelpClick,
@@ -823,7 +823,90 @@ const ConfigurationScreen = ({
         setIsSaveModalOpen(false);
         setTimerNameToSave('');
     };
-    
+
+    const handleExportTimer = () => {
+        if (!loadedTimerId || !savedTimers[loadedTimerId]) {
+            alert('Please save or load a timer first before exporting.');
+            return;
+        }
+
+        const timer = savedTimers[loadedTimerId];
+        const jsonString = JSON.stringify(timer, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${timer.name.replace(/[^a-z0-9]/gi, '_')}_timer.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleShareTimer = async () => {
+        if (!loadedTimerId || !savedTimers[loadedTimerId]) {
+            alert('Please save or load a timer first before sharing.');
+            return;
+        }
+
+        const timer = savedTimers[loadedTimerId];
+        const jsonString = JSON.stringify(timer, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const file = new File([blob], `${timer.name.replace(/[^a-z0-9]/gi, '_')}_timer.json`, { type: 'application/json' });
+
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    title: `Timer: ${timer.name}`,
+                    text: `Workout timer configuration for ${timer.name}`,
+                    files: [file]
+                });
+            } catch (error) {
+                if ((error as Error).name !== 'AbortError') {
+                    console.error('Error sharing:', error);
+                    alert('Could not share timer. Please try exporting instead.');
+                }
+            }
+        } else {
+            // Fallback to export if Web Share API not supported
+            alert('Sharing not supported on this device. Downloading file instead.');
+            handleExportTimer();
+        }
+    };
+
+    const handleImportTimer = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json,.json';
+        input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const importedTimer = JSON.parse(text);
+
+                // Validate the timer object
+                if (!importedTimer.name || !importedTimer.mode) {
+                    alert('Invalid timer file. Please check the file and try again.');
+                    return;
+                }
+
+                // Generate new ID to avoid conflicts
+                const newTimer = { ...importedTimer, id: crypto.randomUUID() };
+
+                // Use the onImport callback to handle the import
+                onImport(newTimer);
+
+                alert(`Timer "${newTimer.name}" imported successfully!`);
+            } catch (error) {
+                console.error('Error importing timer:', error);
+                alert('Failed to import timer. Please check the file and try again.');
+            }
+        };
+        input.click();
+    };
+
     const isStartDisabled = useMemo(() => {
         const numSets = parseInt(sets);
         const numRestTime = parseInt(restTime);
@@ -1204,6 +1287,21 @@ const ConfigurationScreen = ({
                         </select>
                         <IconButton onClick={() => setIsSaveModalOpen(true)}>Save As...</IconButton>
                     </div>
+
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                        <IconButton onClick={handleExportTimer} variant="secondary">
+                            Export
+                        </IconButton>
+                        <IconButton onClick={handleShareTimer} variant="secondary">
+                            Share
+                        </IconButton>
+                        <IconButton onClick={handleImportTimer} variant="secondary">
+                            Import
+                        </IconButton>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        Export/Share to send timer to clients. Import to load a shared timer.
+                    </p>
                 </CollapsibleSection>
             </div>
         
@@ -1388,6 +1486,16 @@ const WorkoutTimer: React.FC = () => {
         }
     };
 
+    const handleImportTimer = (newTimer: SavedTimer) => {
+        // Save to localStorage
+        const newSavedTimers = { ...savedTimers, [newTimer.id]: newTimer };
+        setSavedTimers(newSavedTimers);
+        localStorage.setItem('workout_timers', JSON.stringify(newSavedTimers));
+
+        // Load the imported timer
+        handleLoadTimer(newTimer.id);
+    };
+
     const handleStartWorkout = () => {
         let config: { intervals: Interval[], rounds: number } | null = null;
         if (timerMode === 'rolling') {
@@ -1565,6 +1673,7 @@ const WorkoutTimer: React.FC = () => {
                 savedTimers={savedTimers}
                 saveTimer={saveTimer}
                 loadTimer={handleLoadTimer}
+                onImport={handleImportTimer}
                 onStart={handleStartWorkout}
                 loadedTimerId={loadedTimerId}
                 onHelpClick={() => setIsHelpPopoverOpen(true)}
