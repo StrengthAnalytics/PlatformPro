@@ -87,22 +87,49 @@ const audioManager = (() => {
 
 // --- SPEECH UTILITY ---
 const speechManager = (() => {
+  let voicesLoaded = false;
+
+  const ensureVoicesLoaded = () => {
+    if (voicesLoaded) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Trigger voice loading
+    window.speechSynthesis.getVoices();
+    voicesLoaded = true;
+  };
+
   const speak = (text: string, volume: number) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       console.warn('Speech synthesis not supported');
       return;
     }
 
-    // Cancel any ongoing speech
-    window.speechSynthesis.cancel();
+    ensureVoicesLoaded();
 
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.volume = volume;
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
+    // Only cancel if currently speaking
+    if (window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+    }
 
-    window.speechSynthesis.speak(utterance);
+    // Small delay to ensure cancel completes
+    setTimeout(() => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.volume = volume;
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.lang = 'en-US';
+
+      window.speechSynthesis.speak(utterance);
+    }, 50);
   };
+
+  // Initialize voices on load
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+      voicesLoaded = true;
+    });
+    ensureVoicesLoaded();
+  }
 
   return { speak };
 })();
@@ -1069,9 +1096,19 @@ const ConfigurationScreen = ({
                                     />
                                 </button>
                             </div>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                {useSpeech ? 'Numbers will be spoken instead of beeps' : 'Use beep sounds for alerts'}
-                            </p>
+                            <div className="flex items-center justify-between mt-2">
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {useSpeech ? 'Numbers will be spoken instead of beeps' : 'Use beep sounds for alerts'}
+                                </p>
+                                {useSpeech && (
+                                    <button
+                                        onClick={() => speechManager.speak('3', alertVolume)}
+                                        className="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 rounded transition-colors"
+                                    >
+                                        Test Speech
+                                    </button>
+                                )}
+                            </div>
                         </div>
                     </details>
                 </div>
