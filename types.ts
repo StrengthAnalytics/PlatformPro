@@ -133,6 +133,7 @@ export interface SavedTimer {
   alertTimings?: number[];
   alertVolume?: number;
   useSpeech?: boolean;
+  voiceGender?: 'male' | 'female';
 }
 
 // 1RM Calculator Export Types

@@ -98,16 +98,49 @@ const speechManager = (() => {
     voicesLoaded = true;
   };
 
-  const createUtterance = (text: string, volume: number): SpeechSynthesisUtterance => {
+  const selectVoice = (voiceGender: 'male' | 'female'): SpeechSynthesisVoice | null => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+
+    const voices = window.speechSynthesis.getVoices();
+
+    // Filter for English voices
+    const englishVoices = voices.filter(voice =>
+      voice.lang.startsWith('en-') || voice.lang === 'en'
+    );
+
+    if (englishVoices.length === 0) return null;
+
+    // Try to find a voice matching the gender preference
+    // Male voices often have names like "Google UK English Male", "Daniel", "Fred"
+    // Female voices often have names like "Google UK English Female", "Samantha", "Victoria"
+    const genderKeywords = voiceGender === 'female'
+      ? ['female', 'woman', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona']
+      : ['male', 'man', 'daniel', 'fred', 'thomas', 'oliver', 'rishi'];
+
+    const preferredVoice = englishVoices.find(voice =>
+      genderKeywords.some(keyword => voice.name.toLowerCase().includes(keyword))
+    );
+
+    // Return preferred voice, or first English voice, or any voice
+    return preferredVoice || englishVoices[0] || voices[0] || null;
+  };
+
+  const createUtterance = (text: string, volume: number, voiceGender: 'male' | 'female'): SpeechSynthesisUtterance => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.volume = volume;
     utterance.rate = 1.0;
     utterance.pitch = 1.0;
     utterance.lang = 'en-US';
+
+    const selectedVoice = selectVoice(voiceGender);
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
     return utterance;
   };
 
-  const speak = (text: string, volume: number) => {
+  const speak = (text: string, volume: number, voiceGender: 'male' | 'female' = 'female') => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       console.warn('Speech synthesis not supported');
       return;
@@ -116,7 +149,7 @@ const speechManager = (() => {
     ensureVoicesLoaded();
 
     // Create new utterance immediately - no delay
-    const utterance = createUtterance(text, volume);
+    const utterance = createUtterance(text, volume, voiceGender);
     window.speechSynthesis.speak(utterance);
   };
 
@@ -173,14 +206,15 @@ const useWakeLock = () => {
   return { requestWakeLock, releaseWakeLock };
 };
 
-const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTimings, alertVolume, useSpeech }: {
+const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTimings, alertVolume, useSpeech, voiceGender }: {
     intervals: Interval[],
     rounds: number,
     onComplete: () => void,
     onIntervalChange: (intervalIndex: number, round: number) => void,
     alertTimings: number[],
     alertVolume: number,
-    useSpeech: boolean
+    useSpeech: boolean,
+    voiceGender: 'male' | 'female'
 }) => {
   const [status, setStatus] = useState<'idle' | 'running' | 'paused'>('idle');
   const [currentIntervalIndex, setCurrentIntervalIndex] = useState(0);
@@ -259,7 +293,7 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
         setTimeLeft(prev => {
           if (alertTimings.includes(prev - 1)) {
             if (useSpeech) {
-              speechManager.speak(String(prev - 1), alertVolume);
+              speechManager.speak(String(prev - 1), alertVolume, voiceGender);
             } else {
               audioManager.playSound('long', alertVolume);
             }
@@ -272,7 +306,7 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
         });
       }, 1000);
     }
-  }, [stopTicking, nextInterval, alertTimings, alertVolume, useSpeech]);
+  }, [stopTicking, nextInterval, alertTimings, alertVolume, useSpeech, voiceGender]);
   
   // Main effect to control the timer based on status
   useEffect(() => {
@@ -604,7 +638,7 @@ const TimerDisplay = ({
     );
 };
 
-const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, alertVolume, useSpeech, onVolumeChange }: { sets: number, restTime: number, onExit: () => void, onComplete: () => void, alertTimings: number[], alertVolume: number, useSpeech: boolean, onVolumeChange: (v: number) => void }) => {
+const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, alertVolume, useSpeech, voiceGender, onVolumeChange }: { sets: number, restTime: number, onExit: () => void, onComplete: () => void, alertTimings: number[], alertVolume: number, useSpeech: boolean, voiceGender: 'male' | 'female', onVolumeChange: (v: number) => void }) => {
     const [currentSet, setCurrentSet] = useState(1);
     const [timeLeft, setTimeLeft] = useState(restTime);
     const [status, setStatus] = useState<'idle' | 'running' | 'paused'>('idle');
@@ -647,7 +681,7 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
             setTimeLeft(prev => {
                 if (alertTimings.includes(prev - 1)) {
                     if (useSpeech) {
-                        speechManager.speak(String(prev - 1), alertVolume);
+                        speechManager.speak(String(prev - 1), alertVolume, voiceGender);
                     } else {
                         audioManager.playSound('long', alertVolume);
                     }
@@ -668,7 +702,7 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
             });
         }, 1000);
         return () => { if (timerRef.current) clearInterval(timerRef.current) };
-    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume, useSpeech]);
+    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume, useSpeech, voiceGender]);
     
     useEffect(() => {
         const handleVisibilityChange = () => {
@@ -768,6 +802,7 @@ const ConfigurationScreen = ({
     restTime, setRestTime,
     alertVolume, onVolumeChange,
     useSpeech, setUseSpeech,
+    voiceGender, setVoiceGender,
     alert1, setAlert1, alert2, setAlert2, alert3, setAlert3,
     alert4, setAlert4, alert5, setAlert5, alert6, setAlert6,
     savedTimers, loadTimer, saveTimer,
@@ -1099,7 +1134,7 @@ const ConfigurationScreen = ({
                                 </p>
                                 {useSpeech && (
                                     <button
-                                        onClick={() => speechManager.speak('3', alertVolume)}
+                                        onClick={() => speechManager.speak('3', alertVolume, voiceGender)}
                                         className="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 rounded transition-colors"
                                     >
                                         Test Speech
@@ -1107,6 +1142,39 @@ const ConfigurationScreen = ({
                                 )}
                             </div>
                         </div>
+                        {useSpeech && (
+                            <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+                                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Voice Gender</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setVoiceGender('female');
+                                            localStorage.setItem('workout_timer_voice_gender', 'female');
+                                        }}
+                                        className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+                                            voiceGender === 'female'
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-500'
+                                        }`}
+                                    >
+                                        Female
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setVoiceGender('male');
+                                            localStorage.setItem('workout_timer_voice_gender', 'male');
+                                        }}
+                                        className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+                                            voiceGender === 'male'
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-500'
+                                        }`}
+                                    >
+                                        Male
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </details>
                 </div>
             </Section>
@@ -1180,6 +1248,7 @@ const WorkoutTimer: React.FC = () => {
     const [alertTimings, setAlertTimings] = useState<number[]>(DEFAULT_ALERT_TIMINGS);
     const [alertVolume, setAlertVolume] = useState(0.5);
     const [useSpeech, setUseSpeech] = useState(false);
+    const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('female');
     // State for 6 separate alert interval fields
     // Grid layout: alert6 (top-left) to alert1 (bottom-right)
     // Default countdown: alert1=1, alert2=2, alert3=3, alert4=10, alert5=empty, alert6=empty
@@ -1209,6 +1278,10 @@ const WorkoutTimer: React.FC = () => {
                 if (!isNaN(parsedVolume) && parsedVolume >= 0 && parsedVolume <= 1) {
                     setAlertVolume(parsedVolume);
                 }
+            }
+            const storedVoiceGender = localStorage.getItem('workout_timer_voice_gender');
+            if (storedVoiceGender === 'male' || storedVoiceGender === 'female') {
+                setVoiceGender(storedVoiceGender);
             }
         } catch (e) {
             console.error("Failed to load timers from localStorage", e);
@@ -1263,6 +1336,7 @@ const WorkoutTimer: React.FC = () => {
         alertTimings,
         alertVolume,
         useSpeech,
+        voiceGender,
     });
     
     const saveTimer = (name: string) => {
@@ -1275,7 +1349,7 @@ const WorkoutTimer: React.FC = () => {
             intervals: timerMode === 'interval' ? intervals : [],
             rounds: timerMode === 'interval' ? rounds : 1,
             leadIn: numLeadIn, sets: numSets, roundTime: 0, // roundTime is deprecated
-            restTime: numRestTime, alertTimings, alertVolume, useSpeech
+            restTime: numRestTime, alertTimings, alertVolume, useSpeech, voiceGender
         };
         const newSavedTimers = { ...savedTimers, [newTimer.id]: newTimer };
         setSavedTimers(newSavedTimers);
@@ -1295,6 +1369,7 @@ const WorkoutTimer: React.FC = () => {
             populateAlertFields(DEFAULT_ALERT_TIMINGS);
             setAlertVolume(0.5);
             setUseSpeech(false);
+            setVoiceGender('female');
             return;
         }
         const timerToLoad = savedTimers[id];
@@ -1308,6 +1383,7 @@ const WorkoutTimer: React.FC = () => {
             populateAlertFields(timerToLoad.alertTimings || DEFAULT_ALERT_TIMINGS);
             setAlertVolume(timerToLoad.alertVolume ?? 0.5);
             setUseSpeech(timerToLoad.useSpeech ?? false);
+            setVoiceGender(timerToLoad.voiceGender ?? 'female');
             setLoadedTimerId(id);
         }
     };
@@ -1458,6 +1534,7 @@ const WorkoutTimer: React.FC = () => {
             alertTimings={alertTimings}
             alertVolume={alertVolume}
             useSpeech={useSpeech}
+            voiceGender={voiceGender}
             onVolumeChange={handleVolumeChange}
         />
     }
@@ -1478,6 +1555,7 @@ const WorkoutTimer: React.FC = () => {
                 restTime={restTime} setRestTime={setRestTime}
                 alertVolume={alertVolume} onVolumeChange={handleVolumeChange}
                 useSpeech={useSpeech} setUseSpeech={setUseSpeech}
+                voiceGender={voiceGender} setVoiceGender={setVoiceGender}
                 alert1={alert1} setAlert1={setAlert1}
                 alert2={alert2} setAlert2={setAlert2}
                 alert3={alert3} setAlert3={setAlert3}
