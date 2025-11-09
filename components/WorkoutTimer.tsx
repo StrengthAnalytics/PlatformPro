@@ -836,8 +836,18 @@ const ConfigurationScreen = ({
                     )}
 
                      <details className="mt-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <summary className="p-3 font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
-                            Alert Settings
+                        <summary className="p-3 cursor-pointer">
+                            <div className="flex flex-col gap-1">
+                                <span className="font-semibold text-slate-700 dark:text-slate-200">Alert Settings</span>
+                                <div className="text-xs text-slate-500 dark:text-slate-400">
+                                    Beep intervals: <span className="font-medium text-slate-600 dark:text-slate-300">
+                                        {[alert1, alert2, alert3, alert4, alert5, alert6]
+                                            .filter(v => v !== null)
+                                            .sort((a, b) => (b ?? 0) - (a ?? 0))
+                                            .join(', ') || 'None'}
+                                    </span>
+                                </div>
+                            </div>
                         </summary>
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700">
                             <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Countdown beeps at (seconds):</label>
@@ -1079,13 +1089,14 @@ const WorkoutTimer: React.FC = () => {
     const [alertTimings, setAlertTimings] = useState<number[]>(DEFAULT_ALERT_TIMINGS);
     const [alertVolume, setAlertVolume] = useState(0.5);
     // State for 6 separate alert interval fields
-    // Reversed order: alert6 is top-left (highest), alert1 is bottom-right (lowest)
-    const [alert1, setAlert1] = useState<number | null>(null);
-    const [alert2, setAlert2] = useState<number | null>(null);
-    const [alert3, setAlert3] = useState<number | null>(1);
-    const [alert4, setAlert4] = useState<number | null>(2);
-    const [alert5, setAlert5] = useState<number | null>(3);
-    const [alert6, setAlert6] = useState<number | null>(10);
+    // Grid layout: alert6 (top-left) to alert1 (bottom-right)
+    // Default countdown: alert1=1, alert2=2, alert3=3, alert4=10, alert5=empty, alert6=empty
+    const [alert1, setAlert1] = useState<number | null>(1);
+    const [alert2, setAlert2] = useState<number | null>(2);
+    const [alert3, setAlert3] = useState<number | null>(3);
+    const [alert4, setAlert4] = useState<number | null>(10);
+    const [alert5, setAlert5] = useState<number | null>(null);
+    const [alert6, setAlert6] = useState<number | null>(null);
     const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
 
     const { requestWakeLock, releaseWakeLock } = useWakeLock();
@@ -1122,15 +1133,14 @@ const WorkoutTimer: React.FC = () => {
 
     // Populate alert fields from alertTimings array
     const populateAlertFields = useCallback((timings: number[]) => {
-        // Sort in descending order and map to reversed positions
-        // alert6 gets highest value, alert1 gets lowest
-        const sorted = [...timings].sort((a, b) => b - a);
-        setAlert6(sorted[0] ?? null);
-        setAlert5(sorted[1] ?? null);
-        setAlert4(sorted[2] ?? null);
-        setAlert3(sorted[3] ?? null);
-        setAlert2(sorted[4] ?? null);
-        setAlert1(sorted[5] ?? null);
+        // Sort in ascending order: alert1 gets lowest, alert6 gets highest
+        const sorted = [...timings].sort((a, b) => a - b);
+        setAlert1(sorted[0] ?? null);
+        setAlert2(sorted[1] ?? null);
+        setAlert3(sorted[2] ?? null);
+        setAlert4(sorted[3] ?? null);
+        setAlert5(sorted[4] ?? null);
+        setAlert6(sorted[5] ?? null);
     }, []);
 
     // Initialize alert fields with default values on mount
