@@ -4,6 +4,7 @@ import Section from './Section';
 import CollapsibleSection from './CollapsibleSection';
 import IconButton from './IconButton';
 import Popover from './Popover';
+import InfoIcon from './InfoIcon';
 import TumblerPicker from './TumblerPicker';
 
 // --- CONSTANTS ---
@@ -85,6 +86,85 @@ const audioManager = (() => {
   return { playSound };
 })();
 
+// --- SPEECH UTILITY ---
+const speechManager = (() => {
+  let voicesLoaded = false;
+
+  const ensureVoicesLoaded = () => {
+    if (voicesLoaded) return;
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Trigger voice loading
+    window.speechSynthesis.getVoices();
+    voicesLoaded = true;
+  };
+
+  const selectVoice = (voiceGender: 'male' | 'female'): SpeechSynthesisVoice | null => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
+
+    const voices = window.speechSynthesis.getVoices();
+
+    // Filter for English voices
+    const englishVoices = voices.filter(voice =>
+      voice.lang.startsWith('en-') || voice.lang === 'en'
+    );
+
+    if (englishVoices.length === 0) return null;
+
+    // Try to find a voice matching the gender preference
+    // Male voices often have names like "Google UK English Male", "Daniel", "Fred"
+    // Female voices often have names like "Google UK English Female", "Samantha", "Victoria"
+    const genderKeywords = voiceGender === 'female'
+      ? ['female', 'woman', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona']
+      : ['male', 'man', 'daniel', 'fred', 'thomas', 'oliver', 'rishi'];
+
+    const preferredVoice = englishVoices.find(voice =>
+      genderKeywords.some(keyword => voice.name.toLowerCase().includes(keyword))
+    );
+
+    // Return preferred voice, or first English voice, or any voice
+    return preferredVoice || englishVoices[0] || voices[0] || null;
+  };
+
+  const createUtterance = (text: string, volume: number, voiceGender: 'male' | 'female'): SpeechSynthesisUtterance => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.volume = volume;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.lang = 'en-US';
+
+    const selectedVoice = selectVoice(voiceGender);
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    return utterance;
+  };
+
+  const speak = (text: string, volume: number, voiceGender: 'male' | 'female' = 'female') => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      console.warn('Speech synthesis not supported');
+      return;
+    }
+
+    ensureVoicesLoaded();
+
+    // Create new utterance immediately - no delay
+    const utterance = createUtterance(text, volume, voiceGender);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Initialize voices on load
+  if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+      voicesLoaded = true;
+    });
+    ensureVoicesLoaded();
+  }
+
+  return { speak };
+})();
+
 
 // --- CUSTOM HOOKS ---
 const useIsMobile = (breakpoint = 768) => {
@@ -127,13 +207,15 @@ const useWakeLock = () => {
   return { requestWakeLock, releaseWakeLock };
 };
 
-const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTimings, alertVolume }: {
+const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTimings, alertVolume, useSpeech, voiceGender }: {
     intervals: Interval[],
     rounds: number,
     onComplete: () => void,
     onIntervalChange: (intervalIndex: number, round: number) => void,
     alertTimings: number[],
-    alertVolume: number
+    alertVolume: number,
+    useSpeech: boolean,
+    voiceGender: 'male' | 'female'
 }) => {
   const [status, setStatus] = useState<'idle' | 'running' | 'paused'>('idle');
   const [currentIntervalIndex, setCurrentIntervalIndex] = useState(0);
@@ -211,7 +293,11 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
       timerRef.current = window.setInterval(() => {
         setTimeLeft(prev => {
           if (alertTimings.includes(prev - 1)) {
-            audioManager.playSound('long', alertVolume);
+            if (useSpeech) {
+              speechManager.speak(String(prev - 1), alertVolume, voiceGender);
+            } else {
+              audioManager.playSound('long', alertVolume);
+            }
           }
           if (prev <= 1) {
             nextInterval();
@@ -221,7 +307,7 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
         });
       }, 1000);
     }
-  }, [stopTicking, nextInterval, alertTimings, alertVolume]);
+  }, [stopTicking, nextInterval, alertTimings, alertVolume, useSpeech, voiceGender]);
   
   // Main effect to control the timer based on status
   useEffect(() => {
@@ -397,14 +483,35 @@ const TumblerTimePicker = ({ value, onChange }: { value: number; onChange: (newV
 
 const TumblerSetsPicker = ({ value, onChange }: { value: number; onChange: (newValue: number) => void }) => {
     const setValues = useMemo(() => Array.from({ length: 99 }, (_, i) => i + 1), []);
-    
+
     return (
         <div className="flex justify-center items-center">
-            <TumblerPicker 
+            <TumblerPicker
                 values={setValues}
                 currentValue={value}
                 onChange={(val) => onChange(Number(val))}
                 label="sets"
+                itemHeight={40}
+                containerHeight={120}
+            />
+        </div>
+    );
+};
+
+const TumblerAlertPicker = ({ value, onChange }: { value: number | null; onChange: (newValue: number | null) => void }) => {
+    // 0 represents "empty/disabled", then 1-60 for actual seconds
+    const alertValues = useMemo(() => [0, ...Array.from({ length: 60 }, (_, i) => i + 1)], []);
+
+    return (
+        <div className="flex justify-center items-center">
+            <TumblerPicker
+                values={alertValues}
+                currentValue={value ?? 0}
+                onChange={(val) => {
+                    const numVal = Number(val);
+                    onChange(numVal === 0 ? null : numVal);
+                }}
+                label="sec"
                 itemHeight={40}
                 containerHeight={120}
             />
@@ -532,7 +639,7 @@ const TimerDisplay = ({
     );
 };
 
-const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, alertVolume, onVolumeChange }: { sets: number, restTime: number, onExit: () => void, onComplete: () => void, alertTimings: number[], alertVolume: number, onVolumeChange: (v: number) => void }) => {
+const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, alertVolume, useSpeech, voiceGender, onVolumeChange }: { sets: number, restTime: number, onExit: () => void, onComplete: () => void, alertTimings: number[], alertVolume: number, useSpeech: boolean, voiceGender: 'male' | 'female', onVolumeChange: (v: number) => void }) => {
     const [currentSet, setCurrentSet] = useState(1);
     const [timeLeft, setTimeLeft] = useState(restTime);
     const [status, setStatus] = useState<'idle' | 'running' | 'paused'>('idle');
@@ -574,7 +681,11 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
         timerRef.current = window.setInterval(() => {
             setTimeLeft(prev => {
                 if (alertTimings.includes(prev - 1)) {
-                    audioManager.playSound('long', alertVolume);
+                    if (useSpeech) {
+                        speechManager.speak(String(prev - 1), alertVolume, voiceGender);
+                    } else {
+                        audioManager.playSound('long', alertVolume);
+                    }
                 }
                 if (prev <= 1) {
                     audioManager.playSound('extra-long', alertVolume);
@@ -592,7 +703,7 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
             });
         }, 1000);
         return () => { if (timerRef.current) clearInterval(timerRef.current) };
-    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume]);
+    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume, useSpeech, voiceGender]);
     
     useEffect(() => {
         const handleVisibilityChange = () => {
@@ -686,28 +797,28 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
     );
 };
 
-const ConfigurationScreen = ({ 
+const ConfigurationScreen = ({
     timerMode, setTimerMode,
-    leadIn, setLeadIn, sets, setSets, 
+    leadIn, setLeadIn, sets, setSets,
     restTime, setRestTime,
-    alertTimings, setAlertTimings,
     alertVolume, onVolumeChange,
-    savedTimers, loadTimer, saveTimer,
+    useSpeech, setUseSpeech,
+    voiceGender, setVoiceGender,
+    alert1, setAlert1, alert2, setAlert2, alert3, setAlert3,
+    alert4, setAlert4, alert5, setAlert5, alert6, setAlert6,
+    savedTimers, loadTimer, saveTimer, onImport,
     loadedTimerId,
     onStart,
-    onHelpClick,
     onResetConfig,
 }: any) => {
     const [timerNameToSave, setTimerNameToSave] = useState('');
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-    const [alertsInput, setAlertsInput] = useState(alertTimings.join(', '));
+    const [timerSetupHelpOpen, setTimerSetupHelpOpen] = useState(false);
+    const [alertHelpOpen, setAlertHelpOpen] = useState(false);
+    const [manageTimersHelpOpen, setManageTimersHelpOpen] = useState(false);
     const loadedTimerName = loadedTimerId ? savedTimers[loadedTimerId]?.name : null;
     const isMobile = useIsMobile();
-    const [openPicker, setOpenPicker] = useState<null | 'leadIn' | 'sets' | 'rest'>(null);
-
-    useEffect(() => {
-        setAlertsInput(alertTimings.join(', '));
-    }, [alertTimings]);
+    const [openPicker, setOpenPicker] = useState<null | 'leadIn' | 'sets' | 'rest' | 'alert1' | 'alert2' | 'alert3' | 'alert4' | 'alert5' | 'alert6'>(null);
 
     const handleSaveClick = () => {
         if (!timerNameToSave) return;
@@ -715,7 +826,90 @@ const ConfigurationScreen = ({
         setIsSaveModalOpen(false);
         setTimerNameToSave('');
     };
-    
+
+    const handleExportTimer = () => {
+        if (!loadedTimerId || !savedTimers[loadedTimerId]) {
+            alert('Please save or load a timer first before exporting.');
+            return;
+        }
+
+        const timer = savedTimers[loadedTimerId];
+        const jsonString = JSON.stringify(timer, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${timer.name.replace(/[^a-z0-9]/gi, '_')}_timer.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
+
+    const handleShareTimer = async () => {
+        if (!loadedTimerId || !savedTimers[loadedTimerId]) {
+            alert('Please save or load a timer first before sharing.');
+            return;
+        }
+
+        const timer = savedTimers[loadedTimerId];
+        const jsonString = JSON.stringify(timer, null, 2);
+        const blob = new Blob([jsonString], { type: 'application/json' });
+        const file = new File([blob], `${timer.name.replace(/[^a-z0-9]/gi, '_')}_timer.json`, { type: 'application/json' });
+
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({
+                    title: `Timer: ${timer.name}`,
+                    text: `Workout timer configuration for ${timer.name}`,
+                    files: [file]
+                });
+            } catch (error) {
+                if ((error as Error).name !== 'AbortError') {
+                    console.error('Error sharing:', error);
+                    alert('Could not share timer. Please try exporting instead.');
+                }
+            }
+        } else {
+            // Fallback to export if Web Share API not supported
+            alert('Sharing not supported on this device. Downloading file instead.');
+            handleExportTimer();
+        }
+    };
+
+    const handleImportTimer = () => {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'application/json,.json';
+        input.onchange = async (e) => {
+            const file = (e.target as HTMLInputElement).files?.[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const importedTimer = JSON.parse(text);
+
+                // Validate the timer object
+                if (!importedTimer.name || !importedTimer.mode) {
+                    alert('Invalid timer file. Please check the file and try again.');
+                    return;
+                }
+
+                // Generate new ID to avoid conflicts
+                const newTimer = { ...importedTimer, id: crypto.randomUUID() };
+
+                // Use the onImport callback to handle the import
+                onImport(newTimer);
+
+                alert(`Timer "${newTimer.name}" imported successfully!`);
+            } catch (error) {
+                console.error('Error importing timer:', error);
+                alert('Failed to import timer. Please check the file and try again.');
+            }
+        };
+        input.click();
+    };
+
     const isStartDisabled = useMemo(() => {
         const numSets = parseInt(sets);
         const numRestTime = parseInt(restTime);
@@ -723,28 +917,6 @@ const ConfigurationScreen = ({
         if(timerMode === 'rolling') return isNaN(numSets) || numSets < 2 || isNaN(numRestTime) || numRestTime <= 0;
         return true;
     }, [sets, restTime, timerMode]);
-    
-    const handleAlertsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newString = e.target.value;
-        setAlertsInput(newString);
-
-        // Allow only numbers, commas, and spaces
-        if (/[^0-9, ]/.test(newString)) return;
-
-        // If the string ends with a comma or a space after a comma,
-        // don't update the parent state. This avoids a re-render that
-        // would remove the trailing comma from the user's input.
-        if (newString.trim().endsWith(',')) {
-            return;
-        }
-
-        const values = newString.split(',')
-            .map(v => parseInt(v.trim(), 10))
-            .filter(v => !isNaN(v) && v > 0)
-            .sort((a, b) => b - a);
-        
-        setAlertTimings(values);
-    };
 
     const segmentButtonBase = 'px-4 py-2 text-sm font-semibold rounded-md transition-colors focus:outline-none';
     const segmentButtonActive = 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow';
@@ -752,7 +924,7 @@ const ConfigurationScreen = ({
 
     return (
         <div>
-             <Section title="Timer Setup" onHelpClick={onHelpClick} headerAction={<IconButton variant="danger" onClick={onResetConfig}>Reset</IconButton>}>
+             <Section title="Timer Setup" onHelpClick={() => setTimerSetupHelpOpen(true)} headerAction={<IconButton variant="danger" onClick={onResetConfig}>Reset</IconButton>}>
                 <div className="md:col-span-2 lg:col-span-3">
                     <div className="mb-6 flex flex-col items-center">
                         <label className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Timer Mode</label>
@@ -841,20 +1013,175 @@ const ConfigurationScreen = ({
                     )}
 
                      <details className="mt-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
-                        <summary className="p-3 font-semibold text-slate-700 dark:text-slate-200 cursor-pointer">
-                            Alert Settings
+                        <summary className="p-3 cursor-pointer">
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-slate-700 dark:text-slate-200">Alert Settings</span>
+                                    <InfoIcon onClick={(e) => { e.preventDefault(); e.stopPropagation(); setAlertHelpOpen(true); }} />
+                                </div>
+                                <div className="text-xs text-slate-500 dark:text-slate-400">
+                                    Beep intervals: <span className="font-medium text-slate-600 dark:text-slate-300">
+                                        {[alert1, alert2, alert3, alert4, alert5, alert6]
+                                            .filter(v => v !== null)
+                                            .sort((a, b) => (b ?? 0) - (a ?? 0))
+                                            .join(', ') || 'None'}
+                                    </span>
+                                </div>
+                            </div>
                         </summary>
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700">
-                            <label htmlFor="alert-timings" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Countdown beeps at (seconds):</label>
-                            <input
-                                id="alert-timings"
-                                type="text"
-                                value={alertsInput}
-                                onChange={handleAlertsChange}
-                                placeholder="e.g., 10, 5, 3, 2, 1"
-                                className="w-full p-2 border rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50"
-                            />
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter comma-separated numbers.</p>
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Countdown beeps at (seconds):</label>
+                            {isMobile ? (
+                                <div className="space-y-2">
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {/* Alert 6 - top left */}
+                                        <div className="border-b border-slate-200 dark:border-slate-700 pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert6' ? null : 'alert6')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 6</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert6 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert6' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert6} onChange={setAlert6} /></div>}
+                                        </div>
+                                        {/* Alert 5 */}
+                                        <div className="border-b border-slate-200 dark:border-slate-700 pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert5' ? null : 'alert5')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 5</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert5 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert5' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert5} onChange={setAlert5} /></div>}
+                                        </div>
+                                        {/* Alert 4 */}
+                                        <div className="border-b border-slate-200 dark:border-slate-700 pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert4' ? null : 'alert4')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 4</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert4 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert4' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert4} onChange={setAlert4} /></div>}
+                                        </div>
+                                        {/* Alert 3 */}
+                                        <div className="pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert3' ? null : 'alert3')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 3</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert3 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert3' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert3} onChange={setAlert3} /></div>}
+                                        </div>
+                                        {/* Alert 2 */}
+                                        <div className="pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert2' ? null : 'alert2')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 2</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert2 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert2' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert2} onChange={setAlert2} /></div>}
+                                        </div>
+                                        {/* Alert 1 - bottom right */}
+                                        <div className="pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert1' ? null : 'alert1')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 1</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert1 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert1' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert1} onChange={setAlert1} /></div>}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Tap an alert to set its value. Set to 0 to disable.</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="flex gap-2 justify-between">
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 6</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert6 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert6(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 5</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert5 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert5(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 4</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert4 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert4(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 3</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert3 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert3(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 2</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert2 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert2(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 1</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert1 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert1(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Enter alert times in seconds (0-60). Leave empty or set to 0 to disable an alert.</p>
+                                </div>
+                            )}
                         </div>
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700">
                             <label htmlFor="alert-volume" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Alert Volume</label>
@@ -869,6 +1196,74 @@ const ConfigurationScreen = ({
                                 className="w-full"
                             />
                         </div>
+                        <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between">
+                                <label htmlFor="use-speech" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                                    Use Speech
+                                </label>
+                                <button
+                                    id="use-speech"
+                                    onClick={() => setUseSpeech(!useSpeech)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 ${
+                                        useSpeech ? 'bg-green-600' : 'bg-slate-300 dark:bg-slate-600'
+                                    }`}
+                                    role="switch"
+                                    aria-checked={useSpeech}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            useSpeech ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+                            <div className="flex items-center justify-between mt-2">
+                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                    {useSpeech ? 'Numbers will be spoken instead of beeps' : 'Use beep sounds for alerts'}
+                                </p>
+                                {useSpeech && (
+                                    <button
+                                        onClick={() => speechManager.speak('3', alertVolume, voiceGender)}
+                                        className="text-xs px-2 py-1 bg-slate-200 dark:bg-slate-600 hover:bg-slate-300 dark:hover:bg-slate-500 rounded transition-colors"
+                                    >
+                                        Test Speech
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                        {useSpeech && (
+                            <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+                                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Voice Gender</label>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => {
+                                            setVoiceGender('female');
+                                            localStorage.setItem('workout_timer_voice_gender', 'female');
+                                        }}
+                                        className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+                                            voiceGender === 'female'
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-500'
+                                        }`}
+                                    >
+                                        Female
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setVoiceGender('male');
+                                            localStorage.setItem('workout_timer_voice_gender', 'male');
+                                        }}
+                                        className={`flex-1 py-2 px-4 rounded-md transition-colors ${
+                                            voiceGender === 'male'
+                                                ? 'bg-green-600 text-white'
+                                                : 'bg-slate-200 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-500'
+                                        }`}
+                                    >
+                                        Male
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </details>
                 </div>
             </Section>
@@ -880,7 +1275,7 @@ const ConfigurationScreen = ({
             </div>
 
             <div className="mt-8">
-                <CollapsibleSection title="Manage Timers">
+                <CollapsibleSection title="Manage Timers" onHelpClick={() => setManageTimersHelpOpen(true)}>
                      {loadedTimerName && (
                         <div className="text-center p-3 mb-4 bg-slate-100 dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600">
                             <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
@@ -898,6 +1293,21 @@ const ConfigurationScreen = ({
                         </select>
                         <IconButton onClick={() => setIsSaveModalOpen(true)}>Save As...</IconButton>
                     </div>
+
+                    <div className="grid grid-cols-3 gap-2 mt-3">
+                        <IconButton onClick={handleExportTimer} variant="secondary">
+                            Export
+                        </IconButton>
+                        <IconButton onClick={handleShareTimer} variant="secondary">
+                            Share
+                        </IconButton>
+                        <IconButton onClick={handleImportTimer} variant="secondary">
+                            Import
+                        </IconButton>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                        Export/Share to send timer to clients. Import to load a shared timer.
+                    </p>
                 </CollapsibleSection>
             </div>
         
@@ -913,6 +1323,51 @@ const ConfigurationScreen = ({
                     </div>
                 </div>
             )}
+
+            <Popover
+                isOpen={timerSetupHelpOpen}
+                onClose={() => setTimerSetupHelpOpen(false)}
+                title="Timer Setup Help"
+            >
+                <div className="text-sm space-y-2">
+                    <p><strong>Timer Mode:</strong></p>
+                    <ul className="list-disc list-inside ml-2 space-y-1">
+                        <li><strong>Rolling Rest:</strong> Timer starts automatically after each set. When rest time ends, a new set begins immediately.</li>
+                        <li><strong>Manual Rest:</strong> Timer pauses after each set. You must manually start the next set when ready.</li>
+                    </ul>
+                    <p><strong>Lead In Time:</strong> Preparation time before the first set begins. Use this to get into position.</p>
+                    <p><strong>Sets:</strong> Number of work intervals to complete.</p>
+                    <p><strong>Rest Between Sets:</strong> Duration of rest/recovery time between each work set.</p>
+                </div>
+            </Popover>
+
+            <Popover
+                isOpen={alertHelpOpen}
+                onClose={() => setAlertHelpOpen(false)}
+                title="Alert Settings Help"
+            >
+                <div className="text-sm space-y-2">
+                    <p><strong>Alert Intervals:</strong> Configure up to 6 countdown alerts using separate fields. Desktop shows number inputs; mobile uses tumbler-style pickers. Default values are 10, 3, 2, 1 seconds.</p>
+                    <p><strong>Alert Volume:</strong> Adjust the volume of beeps or speech from silent to maximum.</p>
+                    <p><strong>Use Speech:</strong> Toggle between beep sounds and spoken numbers. When enabled, the timer will speak countdown numbers (e.g., "three", "two", "one") instead of beeping.</p>
+                    <p><strong>Voice Gender:</strong> Choose between male and female voice for speech synthesis (only visible when speech is enabled).</p>
+                    <p><strong>Test Speech:</strong> Click the test button to hear a sample of your selected voice and volume.</p>
+                </div>
+            </Popover>
+
+            <Popover
+                isOpen={manageTimersHelpOpen}
+                onClose={() => setManageTimersHelpOpen(false)}
+                title="Manage Timers Help"
+            >
+                <div className="text-sm space-y-2">
+                    <p><strong>Save As...:</strong> Save your current configuration as a new preset with all settings (intervals, alerts, speech preferences).</p>
+                    <p><strong>Load Timer:</strong> Use the dropdown to load a saved preset or select "-- New Timer --" to start fresh.</p>
+                    <p><strong>Export:</strong> Download the current timer as a JSON file to save to your device.</p>
+                    <p><strong>Share:</strong> Share timer directly via WhatsApp, email, or other apps. Perfect for coaches sending programs to clients!</p>
+                    <p><strong>Import:</strong> Load a timer file shared by a coach or from another device. The timer will be saved locally with all original settings.</p>
+                </div>
+            </Popover>
         </div>
     );
 };
@@ -941,7 +1396,17 @@ const WorkoutTimer: React.FC = () => {
     const [loadedTimerId, setLoadedTimerId] = useState<string | null>(null);
     const [alertTimings, setAlertTimings] = useState<number[]>(DEFAULT_ALERT_TIMINGS);
     const [alertVolume, setAlertVolume] = useState(0.5);
-    const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
+    const [useSpeech, setUseSpeech] = useState(false);
+    const [voiceGender, setVoiceGender] = useState<'male' | 'female'>('female');
+    // State for 6 separate alert interval fields
+    // Grid layout: alert6 (top-left) to alert1 (bottom-right)
+    // Default countdown: alert1=1, alert2=2, alert3=3, alert4=10, alert5=empty, alert6=empty
+    const [alert1, setAlert1] = useState<number | null>(1);
+    const [alert2, setAlert2] = useState<number | null>(2);
+    const [alert3, setAlert3] = useState<number | null>(3);
+    const [alert4, setAlert4] = useState<number | null>(10);
+    const [alert5, setAlert5] = useState<number | null>(null);
+    const [alert6, setAlert6] = useState<number | null>(null);
 
     const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
@@ -962,10 +1427,39 @@ const WorkoutTimer: React.FC = () => {
                     setAlertVolume(parsedVolume);
                 }
             }
+            const storedVoiceGender = localStorage.getItem('workout_timer_voice_gender');
+            if (storedVoiceGender === 'male' || storedVoiceGender === 'female') {
+                setVoiceGender(storedVoiceGender);
+            }
         } catch (e) {
             console.error("Failed to load timers from localStorage", e);
         }
     }, []);
+
+    // Update alertTimings whenever any of the 6 alert fields change
+    useEffect(() => {
+        const alerts = [alert1, alert2, alert3, alert4, alert5, alert6]
+            .filter((val): val is number => val !== null && val > 0)
+            .sort((a, b) => b - a); // Sort descending
+        setAlertTimings(alerts);
+    }, [alert1, alert2, alert3, alert4, alert5, alert6]);
+
+    // Populate alert fields from alertTimings array
+    const populateAlertFields = useCallback((timings: number[]) => {
+        // Sort in ascending order: alert1 gets lowest, alert6 gets highest
+        const sorted = [...timings].sort((a, b) => a - b);
+        setAlert1(sorted[0] ?? null);
+        setAlert2(sorted[1] ?? null);
+        setAlert3(sorted[2] ?? null);
+        setAlert4(sorted[3] ?? null);
+        setAlert5(sorted[4] ?? null);
+        setAlert6(sorted[5] ?? null);
+    }, []);
+
+    // Initialize alert fields with default values on mount
+    useEffect(() => {
+        populateAlertFields(DEFAULT_ALERT_TIMINGS);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleVolumeChange = (newVolume: number) => {
         setAlertVolume(newVolume);
@@ -989,6 +1483,8 @@ const WorkoutTimer: React.FC = () => {
         onIntervalChange: handleIntervalChange,
         alertTimings,
         alertVolume,
+        useSpeech,
+        voiceGender,
     });
     
     const saveTimer = (name: string) => {
@@ -996,12 +1492,12 @@ const WorkoutTimer: React.FC = () => {
         const numSets = parseInt(sets) || 1;
         const numRestTime = parseInt(restTime) || 0;
 
-        const newTimer: SavedTimer = { 
-            id: crypto.randomUUID(), name, mode: timerMode, 
-            intervals: timerMode === 'interval' ? intervals : [], 
-            rounds: timerMode === 'interval' ? rounds : 1, 
+        const newTimer: SavedTimer = {
+            id: crypto.randomUUID(), name, mode: timerMode,
+            intervals: timerMode === 'interval' ? intervals : [],
+            rounds: timerMode === 'interval' ? rounds : 1,
             leadIn: numLeadIn, sets: numSets, roundTime: 0, // roundTime is deprecated
-            restTime: numRestTime, alertTimings, alertVolume
+            restTime: numRestTime, alertTimings, alertVolume, useSpeech, voiceGender
         };
         const newSavedTimers = { ...savedTimers, [newTimer.id]: newTimer };
         setSavedTimers(newSavedTimers);
@@ -1018,8 +1514,10 @@ const WorkoutTimer: React.FC = () => {
             setSets('5');
             setRestTime('120');
             setLoadedTimerId(null);
-            setAlertTimings(DEFAULT_ALERT_TIMINGS);
+            populateAlertFields(DEFAULT_ALERT_TIMINGS);
             setAlertVolume(0.5);
+            setUseSpeech(false);
+            setVoiceGender('female');
             return;
         }
         const timerToLoad = savedTimers[id];
@@ -1030,10 +1528,22 @@ const WorkoutTimer: React.FC = () => {
             setLeadIn(String(timerToLoad.leadIn || 10));
             setSets(String(timerToLoad.sets || 5));
             setRestTime(String(timerToLoad.restTime || timerToLoad.roundTime || 120));
-            setAlertTimings(timerToLoad.alertTimings || DEFAULT_ALERT_TIMINGS);
+            populateAlertFields(timerToLoad.alertTimings || DEFAULT_ALERT_TIMINGS);
             setAlertVolume(timerToLoad.alertVolume ?? 0.5);
+            setUseSpeech(timerToLoad.useSpeech ?? false);
+            setVoiceGender(timerToLoad.voiceGender ?? 'female');
             setLoadedTimerId(id);
         }
+    };
+
+    const handleImportTimer = (newTimer: SavedTimer) => {
+        // Save to localStorage
+        const newSavedTimers = { ...savedTimers, [newTimer.id]: newTimer };
+        setSavedTimers(newSavedTimers);
+        localStorage.setItem('workout_timers', JSON.stringify(newSavedTimers));
+
+        // Load the imported timer
+        handleLoadTimer(newTimer.id);
     };
 
     const handleStartWorkout = () => {
@@ -1090,36 +1600,6 @@ const WorkoutTimer: React.FC = () => {
         setView('config');
     };
 
-    const helpContent = (
-      <>
-        <p className="mb-3 text-slate-600 dark:text-slate-300">
-            This versatile timer is designed for various training styles. Here's a quick guide to its features:
-        </p>
-        <div className="space-y-4">
-            <div>
-                <h4 className="font-bold text-slate-800 dark:text-slate-100">Timer Modes</h4>
-                <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1 mt-1">
-                    <li><strong>Rolling Rest:</strong> Ideal for automatically timed rests between sets. Set a lead-in, the number of sets you'll perform, and the rest duration. The timer will run for (n-1) rest periods for 'n' sets.</li>
-                    <li><strong>Manual Rest:</strong> Perfect for strength training. After a set, manually start your timed rest period.</li>
-                </ul>
-            </div>
-             <div>
-                <h4 className="font-bold text-slate-800 dark:text-slate-100">Alert Settings</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Customize when you hear countdown beeps by entering a comma-separated list of seconds (e.g., <code>10, 5, 3, 2, 1</code>). This setting applies to all timer modes and is saved with each preset.
-                </p>
-            </div>
-            <div>
-                <h4 className="font-bold text-slate-800 dark:text-slate-100">Manage Timers</h4>
-                <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1 mt-1">
-                    <li><strong>Save As...:</strong> Save your current configuration as a new preset.</li>
-                    <li><strong>Load Timer:</strong> Use the dropdown to load a saved preset or select "-- New Timer --" to start fresh.</li>
-                </ul>
-            </div>
-        </div>
-      </>
-    );
-    
     if (view === 'finished') {
         return (
             <div className="fixed inset-0 bg-green-600 text-white flex flex-col items-center justify-center text-center p-4 animate-fadeIn">
@@ -1174,42 +1654,42 @@ const WorkoutTimer: React.FC = () => {
     }
 
     if (view === 'active-manual') {
-        return <ManualRestTimer 
-            sets={parseInt(sets) || 1} 
-            restTime={parseInt(restTime) || 0} 
-            onExit={handleExit} 
-            onComplete={handleComplete} 
-            alertTimings={alertTimings} 
+        return <ManualRestTimer
+            sets={parseInt(sets) || 1}
+            restTime={parseInt(restTime) || 0}
+            onExit={handleExit}
+            onComplete={handleComplete}
+            alertTimings={alertTimings}
             alertVolume={alertVolume}
+            useSpeech={useSpeech}
+            voiceGender={voiceGender}
             onVolumeChange={handleVolumeChange}
         />
     }
 
     return (
-        <>
-            <Popover 
-                isOpen={isHelpPopoverOpen}
-                onClose={() => setIsHelpPopoverOpen(false)}
-                title="How to Use the Workout Timer"
-            >
-                {helpContent}
-            </Popover>
-            <ConfigurationScreen 
-                timerMode={timerMode} setTimerMode={setTimerMode}
-                leadIn={leadIn} setLeadIn={setLeadIn}
-                sets={sets} setSets={setSets}
-                restTime={restTime} setRestTime={setRestTime}
-                alertTimings={alertTimings} setAlertTimings={setAlertTimings}
-                alertVolume={alertVolume} onVolumeChange={handleVolumeChange}
-                savedTimers={savedTimers}
-                saveTimer={saveTimer}
-                loadTimer={handleLoadTimer}
-                onStart={handleStartWorkout}
-                loadedTimerId={loadedTimerId}
-                onHelpClick={() => setIsHelpPopoverOpen(true)}
-                onResetConfig={() => handleLoadTimer('')}
-            />
-        </>
+        <ConfigurationScreen
+            timerMode={timerMode} setTimerMode={setTimerMode}
+            leadIn={leadIn} setLeadIn={setLeadIn}
+            sets={sets} setSets={setSets}
+            restTime={restTime} setRestTime={setRestTime}
+            alertVolume={alertVolume} onVolumeChange={handleVolumeChange}
+            useSpeech={useSpeech} setUseSpeech={setUseSpeech}
+            voiceGender={voiceGender} setVoiceGender={setVoiceGender}
+            alert1={alert1} setAlert1={setAlert1}
+            alert2={alert2} setAlert2={setAlert2}
+            alert3={alert3} setAlert3={setAlert3}
+            alert4={alert4} setAlert4={setAlert4}
+            alert5={alert5} setAlert5={setAlert5}
+            alert6={alert6} setAlert6={setAlert6}
+            savedTimers={savedTimers}
+            saveTimer={saveTimer}
+            loadTimer={handleLoadTimer}
+            onImport={handleImportTimer}
+            onStart={handleStartWorkout}
+            loadedTimerId={loadedTimerId}
+            onResetConfig={() => handleLoadTimer('')}
+        />
     );
 };
 
