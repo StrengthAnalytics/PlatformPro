@@ -122,7 +122,7 @@ export interface SavedTimer {
   name: string;
   mode: TimerMode;
   // For 'interval' mode
-  intervals: Interval[]; 
+  intervals: Interval[];
   rounds: number;
   // For 'rolling' mode
   leadIn: number;
@@ -132,6 +132,7 @@ export interface SavedTimer {
   restTime: number;
   alertTimings?: number[];
   alertVolume?: number;
+  useSpeech?: boolean;
 }
 
 // 1RM Calculator Export Types

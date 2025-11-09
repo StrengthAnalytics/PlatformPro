@@ -85,6 +85,28 @@ const audioManager = (() => {
   return { playSound };
 })();
 
+// --- SPEECH UTILITY ---
+const speechManager = (() => {
+  const speak = (text: string, volume: number) => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      console.warn('Speech synthesis not supported');
+      return;
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.volume = volume;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  return { speak };
+})();
+
 
 // --- CUSTOM HOOKS ---
 const useIsMobile = (breakpoint = 768) => {
@@ -127,13 +149,14 @@ const useWakeLock = () => {
   return { requestWakeLock, releaseWakeLock };
 };
 
-const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTimings, alertVolume }: {
+const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTimings, alertVolume, useSpeech }: {
     intervals: Interval[],
     rounds: number,
     onComplete: () => void,
     onIntervalChange: (intervalIndex: number, round: number) => void,
     alertTimings: number[],
-    alertVolume: number
+    alertVolume: number,
+    useSpeech: boolean
 }) => {
   const [status, setStatus] = useState<'idle' | 'running' | 'paused'>('idle');
   const [currentIntervalIndex, setCurrentIntervalIndex] = useState(0);
@@ -211,7 +234,11 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
       timerRef.current = window.setInterval(() => {
         setTimeLeft(prev => {
           if (alertTimings.includes(prev - 1)) {
-            audioManager.playSound('long', alertVolume);
+            if (useSpeech) {
+              speechManager.speak(String(prev - 1), alertVolume);
+            } else {
+              audioManager.playSound('long', alertVolume);
+            }
           }
           if (prev <= 1) {
             nextInterval();
@@ -221,7 +248,7 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
         });
       }, 1000);
     }
-  }, [stopTicking, nextInterval, alertTimings, alertVolume]);
+  }, [stopTicking, nextInterval, alertTimings, alertVolume, useSpeech]);
   
   // Main effect to control the timer based on status
   useEffect(() => {
@@ -553,7 +580,7 @@ const TimerDisplay = ({
     );
 };
 
-const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, alertVolume, onVolumeChange }: { sets: number, restTime: number, onExit: () => void, onComplete: () => void, alertTimings: number[], alertVolume: number, onVolumeChange: (v: number) => void }) => {
+const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, alertVolume, useSpeech, onVolumeChange }: { sets: number, restTime: number, onExit: () => void, onComplete: () => void, alertTimings: number[], alertVolume: number, useSpeech: boolean, onVolumeChange: (v: number) => void }) => {
     const [currentSet, setCurrentSet] = useState(1);
     const [timeLeft, setTimeLeft] = useState(restTime);
     const [status, setStatus] = useState<'idle' | 'running' | 'paused'>('idle');
@@ -595,7 +622,11 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
         timerRef.current = window.setInterval(() => {
             setTimeLeft(prev => {
                 if (alertTimings.includes(prev - 1)) {
-                    audioManager.playSound('long', alertVolume);
+                    if (useSpeech) {
+                        speechManager.speak(String(prev - 1), alertVolume);
+                    } else {
+                        audioManager.playSound('long', alertVolume);
+                    }
                 }
                 if (prev <= 1) {
                     audioManager.playSound('extra-long', alertVolume);
@@ -613,7 +644,7 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
             });
         }, 1000);
         return () => { if (timerRef.current) clearInterval(timerRef.current) };
-    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume]);
+    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume, useSpeech]);
     
     useEffect(() => {
         const handleVisibilityChange = () => {
@@ -712,6 +743,7 @@ const ConfigurationScreen = ({
     leadIn, setLeadIn, sets, setSets,
     restTime, setRestTime,
     alertVolume, onVolumeChange,
+    useSpeech, setUseSpeech,
     alert1, setAlert1, alert2, setAlert2, alert3, setAlert3,
     alert4, setAlert4, alert5, setAlert5, alert6, setAlert6,
     savedTimers, loadTimer, saveTimer,
@@ -1016,6 +1048,31 @@ const ConfigurationScreen = ({
                                 className="w-full"
                             />
                         </div>
+                        <div className="p-3 border-t border-slate-200 dark:border-slate-700">
+                            <div className="flex items-center justify-between">
+                                <label htmlFor="use-speech" className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                                    Use Speech
+                                </label>
+                                <button
+                                    id="use-speech"
+                                    onClick={() => setUseSpeech(!useSpeech)}
+                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 ${
+                                        useSpeech ? 'bg-green-600' : 'bg-slate-300 dark:bg-slate-600'
+                                    }`}
+                                    role="switch"
+                                    aria-checked={useSpeech}
+                                >
+                                    <span
+                                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                            useSpeech ? 'translate-x-6' : 'translate-x-1'
+                                        }`}
+                                    />
+                                </button>
+                            </div>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                {useSpeech ? 'Numbers will be spoken instead of beeps' : 'Use beep sounds for alerts'}
+                            </p>
+                        </div>
                     </details>
                 </div>
             </Section>
@@ -1088,6 +1145,7 @@ const WorkoutTimer: React.FC = () => {
     const [loadedTimerId, setLoadedTimerId] = useState<string | null>(null);
     const [alertTimings, setAlertTimings] = useState<number[]>(DEFAULT_ALERT_TIMINGS);
     const [alertVolume, setAlertVolume] = useState(0.5);
+    const [useSpeech, setUseSpeech] = useState(false);
     // State for 6 separate alert interval fields
     // Grid layout: alert6 (top-left) to alert1 (bottom-right)
     // Default countdown: alert1=1, alert2=2, alert3=3, alert4=10, alert5=empty, alert6=empty
@@ -1170,6 +1228,7 @@ const WorkoutTimer: React.FC = () => {
         onIntervalChange: handleIntervalChange,
         alertTimings,
         alertVolume,
+        useSpeech,
     });
     
     const saveTimer = (name: string) => {
@@ -1177,12 +1236,12 @@ const WorkoutTimer: React.FC = () => {
         const numSets = parseInt(sets) || 1;
         const numRestTime = parseInt(restTime) || 0;
 
-        const newTimer: SavedTimer = { 
-            id: crypto.randomUUID(), name, mode: timerMode, 
-            intervals: timerMode === 'interval' ? intervals : [], 
-            rounds: timerMode === 'interval' ? rounds : 1, 
+        const newTimer: SavedTimer = {
+            id: crypto.randomUUID(), name, mode: timerMode,
+            intervals: timerMode === 'interval' ? intervals : [],
+            rounds: timerMode === 'interval' ? rounds : 1,
             leadIn: numLeadIn, sets: numSets, roundTime: 0, // roundTime is deprecated
-            restTime: numRestTime, alertTimings, alertVolume
+            restTime: numRestTime, alertTimings, alertVolume, useSpeech
         };
         const newSavedTimers = { ...savedTimers, [newTimer.id]: newTimer };
         setSavedTimers(newSavedTimers);
@@ -1201,6 +1260,7 @@ const WorkoutTimer: React.FC = () => {
             setLoadedTimerId(null);
             populateAlertFields(DEFAULT_ALERT_TIMINGS);
             setAlertVolume(0.5);
+            setUseSpeech(false);
             return;
         }
         const timerToLoad = savedTimers[id];
@@ -1213,6 +1273,7 @@ const WorkoutTimer: React.FC = () => {
             setRestTime(String(timerToLoad.restTime || timerToLoad.roundTime || 120));
             populateAlertFields(timerToLoad.alertTimings || DEFAULT_ALERT_TIMINGS);
             setAlertVolume(timerToLoad.alertVolume ?? 0.5);
+            setUseSpeech(timerToLoad.useSpeech ?? false);
             setLoadedTimerId(id);
         }
     };
@@ -1355,13 +1416,14 @@ const WorkoutTimer: React.FC = () => {
     }
 
     if (view === 'active-manual') {
-        return <ManualRestTimer 
-            sets={parseInt(sets) || 1} 
-            restTime={parseInt(restTime) || 0} 
-            onExit={handleExit} 
-            onComplete={handleComplete} 
-            alertTimings={alertTimings} 
+        return <ManualRestTimer
+            sets={parseInt(sets) || 1}
+            restTime={parseInt(restTime) || 0}
+            onExit={handleExit}
+            onComplete={handleComplete}
+            alertTimings={alertTimings}
             alertVolume={alertVolume}
+            useSpeech={useSpeech}
             onVolumeChange={handleVolumeChange}
         />
     }
@@ -1381,6 +1443,7 @@ const WorkoutTimer: React.FC = () => {
                 sets={sets} setSets={setSets}
                 restTime={restTime} setRestTime={setRestTime}
                 alertVolume={alertVolume} onVolumeChange={handleVolumeChange}
+                useSpeech={useSpeech} setUseSpeech={setUseSpeech}
                 alert1={alert1} setAlert1={setAlert1}
                 alert2={alert2} setAlert2={setAlert2}
                 alert3={alert3} setAlert3={setAlert3}
