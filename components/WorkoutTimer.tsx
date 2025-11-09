@@ -98,6 +98,15 @@ const speechManager = (() => {
     voicesLoaded = true;
   };
 
+  const createUtterance = (text: string, volume: number): SpeechSynthesisUtterance => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.volume = volume;
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.lang = 'en-US';
+    return utterance;
+  };
+
   const speak = (text: string, volume: number) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       console.warn('Speech synthesis not supported');
@@ -106,21 +115,9 @@ const speechManager = (() => {
 
     ensureVoicesLoaded();
 
-    // Only cancel if currently speaking
-    if (window.speechSynthesis.speaking) {
-      window.speechSynthesis.cancel();
-    }
-
-    // Small delay to ensure cancel completes
-    setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.volume = volume;
-      utterance.rate = 1.0;
-      utterance.pitch = 1.0;
-      utterance.lang = 'en-US';
-
-      window.speechSynthesis.speak(utterance);
-    }, 50);
+    // Create new utterance immediately - no delay
+    const utterance = createUtterance(text, volume);
+    window.speechSynthesis.speak(utterance);
   };
 
   // Initialize voices on load
