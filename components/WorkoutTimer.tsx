@@ -397,14 +397,35 @@ const TumblerTimePicker = ({ value, onChange }: { value: number; onChange: (newV
 
 const TumblerSetsPicker = ({ value, onChange }: { value: number; onChange: (newValue: number) => void }) => {
     const setValues = useMemo(() => Array.from({ length: 99 }, (_, i) => i + 1), []);
-    
+
     return (
         <div className="flex justify-center items-center">
-            <TumblerPicker 
+            <TumblerPicker
                 values={setValues}
                 currentValue={value}
                 onChange={(val) => onChange(Number(val))}
                 label="sets"
+                itemHeight={40}
+                containerHeight={120}
+            />
+        </div>
+    );
+};
+
+const TumblerAlertPicker = ({ value, onChange }: { value: number | null; onChange: (newValue: number | null) => void }) => {
+    // 0 represents "empty/disabled", then 1-60 for actual seconds
+    const alertValues = useMemo(() => [0, ...Array.from({ length: 60 }, (_, i) => i + 1)], []);
+
+    return (
+        <div className="flex justify-center items-center">
+            <TumblerPicker
+                values={alertValues}
+                currentValue={value ?? 0}
+                onChange={(val) => {
+                    const numVal = Number(val);
+                    onChange(numVal === 0 ? null : numVal);
+                }}
+                label="sec"
                 itemHeight={40}
                 containerHeight={120}
             />
@@ -686,12 +707,13 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
     );
 };
 
-const ConfigurationScreen = ({ 
+const ConfigurationScreen = ({
     timerMode, setTimerMode,
-    leadIn, setLeadIn, sets, setSets, 
+    leadIn, setLeadIn, sets, setSets,
     restTime, setRestTime,
-    alertTimings, setAlertTimings,
     alertVolume, onVolumeChange,
+    alert1, setAlert1, alert2, setAlert2, alert3, setAlert3,
+    alert4, setAlert4, alert5, setAlert5, alert6, setAlert6,
     savedTimers, loadTimer, saveTimer,
     loadedTimerId,
     onStart,
@@ -700,14 +722,9 @@ const ConfigurationScreen = ({
 }: any) => {
     const [timerNameToSave, setTimerNameToSave] = useState('');
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
-    const [alertsInput, setAlertsInput] = useState(alertTimings.join(', '));
     const loadedTimerName = loadedTimerId ? savedTimers[loadedTimerId]?.name : null;
     const isMobile = useIsMobile();
-    const [openPicker, setOpenPicker] = useState<null | 'leadIn' | 'sets' | 'rest'>(null);
-
-    useEffect(() => {
-        setAlertsInput(alertTimings.join(', '));
-    }, [alertTimings]);
+    const [openPicker, setOpenPicker] = useState<null | 'leadIn' | 'sets' | 'rest' | 'alerts'>(null);
 
     const handleSaveClick = () => {
         if (!timerNameToSave) return;
@@ -723,28 +740,6 @@ const ConfigurationScreen = ({
         if(timerMode === 'rolling') return isNaN(numSets) || numSets < 2 || isNaN(numRestTime) || numRestTime <= 0;
         return true;
     }, [sets, restTime, timerMode]);
-    
-    const handleAlertsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newString = e.target.value;
-        setAlertsInput(newString);
-
-        // Allow only numbers, commas, and spaces
-        if (/[^0-9, ]/.test(newString)) return;
-
-        // If the string ends with a comma or a space after a comma,
-        // don't update the parent state. This avoids a re-render that
-        // would remove the trailing comma from the user's input.
-        if (newString.trim().endsWith(',')) {
-            return;
-        }
-
-        const values = newString.split(',')
-            .map(v => parseInt(v.trim(), 10))
-            .filter(v => !isNaN(v) && v > 0)
-            .sort((a, b) => b - a);
-        
-        setAlertTimings(values);
-    };
 
     const segmentButtonBase = 'px-4 py-2 text-sm font-semibold rounded-md transition-colors focus:outline-none';
     const segmentButtonActive = 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow';
@@ -845,16 +840,147 @@ const ConfigurationScreen = ({
                             Alert Settings
                         </summary>
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700">
-                            <label htmlFor="alert-timings" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Countdown beeps at (seconds):</label>
-                            <input
-                                id="alert-timings"
-                                type="text"
-                                value={alertsInput}
-                                onChange={handleAlertsChange}
-                                placeholder="e.g., 10, 5, 3, 2, 1"
-                                className="w-full p-2 border rounded-md bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50"
-                            />
-                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Enter comma-separated numbers.</p>
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Countdown beeps at (seconds):</label>
+                            {isMobile ? (
+                                <div className="space-y-2">
+                                    <div onClick={() => setOpenPicker(openPicker === 'alerts' ? null : 'alerts')} className="flex justify-between items-center cursor-pointer p-2 bg-white dark:bg-slate-700 rounded-md border border-slate-300 dark:border-slate-600">
+                                        <span className="text-sm text-slate-700 dark:text-slate-200">Alert Intervals</span>
+                                        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                                            {[alert1, alert2, alert3, alert4, alert5, alert6]
+                                                .filter(v => v !== null)
+                                                .sort((a, b) => (b ?? 0) - (a ?? 0))
+                                                .join(', ') || 'None'}
+                                        </span>
+                                    </div>
+                                    {openPicker === 'alerts' && (
+                                        <div className="mt-4 animate-fadeIn">
+                                            <div className="grid grid-cols-3 gap-2 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg">
+                                                <div className="text-center">
+                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 1</label>
+                                                    <TumblerAlertPicker value={alert1} onChange={setAlert1} />
+                                                </div>
+                                                <div className="text-center">
+                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 2</label>
+                                                    <TumblerAlertPicker value={alert2} onChange={setAlert2} />
+                                                </div>
+                                                <div className="text-center">
+                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 3</label>
+                                                    <TumblerAlertPicker value={alert3} onChange={setAlert3} />
+                                                </div>
+                                                <div className="text-center">
+                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 4</label>
+                                                    <TumblerAlertPicker value={alert4} onChange={setAlert4} />
+                                                </div>
+                                                <div className="text-center">
+                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 5</label>
+                                                    <TumblerAlertPicker value={alert5} onChange={setAlert5} />
+                                                </div>
+                                                <div className="text-center">
+                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 6</label>
+                                                    <TumblerAlertPicker value={alert6} onChange={setAlert6} />
+                                                </div>
+                                            </div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Set to 0 to disable an alert. Alerts will beep at the specified seconds during countdown.</p>
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="flex gap-2 justify-between">
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 1</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert1 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert1(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 2</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert2 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert2(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 3</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert3 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert3(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 4</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert4 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert4(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 5</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert5 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert5(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 6</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert6 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert6(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Enter alert times in seconds (0-60). Leave empty or set to 0 to disable an alert.</p>
+                                </div>
+                            )}
                         </div>
                         <div className="p-3 border-t border-slate-200 dark:border-slate-700">
                             <label htmlFor="alert-volume" className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-1">Alert Volume</label>
@@ -941,6 +1067,13 @@ const WorkoutTimer: React.FC = () => {
     const [loadedTimerId, setLoadedTimerId] = useState<string | null>(null);
     const [alertTimings, setAlertTimings] = useState<number[]>(DEFAULT_ALERT_TIMINGS);
     const [alertVolume, setAlertVolume] = useState(0.5);
+    // State for 6 separate alert interval fields (left to right)
+    const [alert1, setAlert1] = useState<number | null>(null);
+    const [alert2, setAlert2] = useState<number | null>(null);
+    const [alert3, setAlert3] = useState<number | null>(10);
+    const [alert4, setAlert4] = useState<number | null>(3);
+    const [alert5, setAlert5] = useState<number | null>(2);
+    const [alert6, setAlert6] = useState<number | null>(1);
     const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
 
     const { requestWakeLock, releaseWakeLock } = useWakeLock();
@@ -966,6 +1099,31 @@ const WorkoutTimer: React.FC = () => {
             console.error("Failed to load timers from localStorage", e);
         }
     }, []);
+
+    // Update alertTimings whenever any of the 6 alert fields change
+    useEffect(() => {
+        const alerts = [alert1, alert2, alert3, alert4, alert5, alert6]
+            .filter((val): val is number => val !== null && val > 0)
+            .sort((a, b) => b - a); // Sort descending
+        setAlertTimings(alerts);
+    }, [alert1, alert2, alert3, alert4, alert5, alert6]);
+
+    // Populate alert fields from alertTimings array
+    const populateAlertFields = useCallback((timings: number[]) => {
+        // Sort in descending order and pad to 6 slots
+        const sorted = [...timings].sort((a, b) => b - a);
+        setAlert1(sorted[0] ?? null);
+        setAlert2(sorted[1] ?? null);
+        setAlert3(sorted[2] ?? null);
+        setAlert4(sorted[3] ?? null);
+        setAlert5(sorted[4] ?? null);
+        setAlert6(sorted[5] ?? null);
+    }, []);
+
+    // Initialize alert fields with default values on mount
+    useEffect(() => {
+        populateAlertFields(DEFAULT_ALERT_TIMINGS);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleVolumeChange = (newVolume: number) => {
         setAlertVolume(newVolume);
@@ -1018,7 +1176,7 @@ const WorkoutTimer: React.FC = () => {
             setSets('5');
             setRestTime('120');
             setLoadedTimerId(null);
-            setAlertTimings(DEFAULT_ALERT_TIMINGS);
+            populateAlertFields(DEFAULT_ALERT_TIMINGS);
             setAlertVolume(0.5);
             return;
         }
@@ -1030,7 +1188,7 @@ const WorkoutTimer: React.FC = () => {
             setLeadIn(String(timerToLoad.leadIn || 10));
             setSets(String(timerToLoad.sets || 5));
             setRestTime(String(timerToLoad.restTime || timerToLoad.roundTime || 120));
-            setAlertTimings(timerToLoad.alertTimings || DEFAULT_ALERT_TIMINGS);
+            populateAlertFields(timerToLoad.alertTimings || DEFAULT_ALERT_TIMINGS);
             setAlertVolume(timerToLoad.alertVolume ?? 0.5);
             setLoadedTimerId(id);
         }
@@ -1194,13 +1352,18 @@ const WorkoutTimer: React.FC = () => {
             >
                 {helpContent}
             </Popover>
-            <ConfigurationScreen 
+            <ConfigurationScreen
                 timerMode={timerMode} setTimerMode={setTimerMode}
                 leadIn={leadIn} setLeadIn={setLeadIn}
                 sets={sets} setSets={setSets}
                 restTime={restTime} setRestTime={setRestTime}
-                alertTimings={alertTimings} setAlertTimings={setAlertTimings}
                 alertVolume={alertVolume} onVolumeChange={handleVolumeChange}
+                alert1={alert1} setAlert1={setAlert1}
+                alert2={alert2} setAlert2={setAlert2}
+                alert3={alert3} setAlert3={setAlert3}
+                alert4={alert4} setAlert4={setAlert4}
+                alert5={alert5} setAlert5={setAlert5}
+                alert6={alert6} setAlert6={setAlert6}
                 savedTimers={savedTimers}
                 saveTimer={saveTimer}
                 loadTimer={handleLoadTimer}
