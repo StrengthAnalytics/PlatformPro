@@ -4,6 +4,7 @@ import Section from './Section';
 import CollapsibleSection from './CollapsibleSection';
 import IconButton from './IconButton';
 import Popover from './Popover';
+import InfoIcon from './InfoIcon';
 import TumblerPicker from './TumblerPicker';
 
 // --- CONSTANTS ---
@@ -808,11 +809,12 @@ const ConfigurationScreen = ({
     savedTimers, loadTimer, saveTimer, onImport,
     loadedTimerId,
     onStart,
-    onHelpClick,
     onResetConfig,
 }: any) => {
     const [timerNameToSave, setTimerNameToSave] = useState('');
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+    const [alertHelpOpen, setAlertHelpOpen] = useState(false);
+    const [manageTimersHelpOpen, setManageTimersHelpOpen] = useState(false);
     const loadedTimerName = loadedTimerId ? savedTimers[loadedTimerId]?.name : null;
     const isMobile = useIsMobile();
     const [openPicker, setOpenPicker] = useState<null | 'leadIn' | 'sets' | 'rest' | 'alert1' | 'alert2' | 'alert3' | 'alert4' | 'alert5' | 'alert6'>(null);
@@ -921,7 +923,7 @@ const ConfigurationScreen = ({
 
     return (
         <div>
-             <Section title="Timer Setup" onHelpClick={onHelpClick} headerAction={<IconButton variant="danger" onClick={onResetConfig}>Reset</IconButton>}>
+             <Section title="Timer Setup" headerAction={<IconButton variant="danger" onClick={onResetConfig}>Reset</IconButton>}>
                 <div className="md:col-span-2 lg:col-span-3">
                     <div className="mb-6 flex flex-col items-center">
                         <label className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Timer Mode</label>
@@ -1012,7 +1014,10 @@ const ConfigurationScreen = ({
                      <details className="mt-4 bg-slate-50 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
                         <summary className="p-3 cursor-pointer">
                             <div className="flex flex-col gap-1">
-                                <span className="font-semibold text-slate-700 dark:text-slate-200">Alert Settings</span>
+                                <div className="flex items-center gap-2">
+                                    <span className="font-semibold text-slate-700 dark:text-slate-200">Alert Settings</span>
+                                    <InfoIcon onClick={(e) => { e.preventDefault(); e.stopPropagation(); setAlertHelpOpen(true); }} />
+                                </div>
                                 <div className="text-xs text-slate-500 dark:text-slate-400">
                                     Beep intervals: <span className="font-medium text-slate-600 dark:text-slate-300">
                                         {[alert1, alert2, alert3, alert4, alert5, alert6]
@@ -1269,7 +1274,7 @@ const ConfigurationScreen = ({
             </div>
 
             <div className="mt-8">
-                <CollapsibleSection title="Manage Timers">
+                <CollapsibleSection title="Manage Timers" onHelpClick={() => setManageTimersHelpOpen(true)}>
                      {loadedTimerName && (
                         <div className="text-center p-3 mb-4 bg-slate-100 dark:bg-slate-700 rounded-md border border-slate-200 dark:border-slate-600">
                             <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
@@ -1317,6 +1322,34 @@ const ConfigurationScreen = ({
                     </div>
                 </div>
             )}
+
+            <Popover
+                isOpen={alertHelpOpen}
+                onClose={() => setAlertHelpOpen(false)}
+                title="Alert Settings Help"
+            >
+                <div className="text-sm space-y-2">
+                    <p><strong>Alert Intervals:</strong> Configure up to 6 countdown alerts using separate fields. Desktop shows number inputs; mobile uses tumbler-style pickers. Default values are 10, 3, 2, 1 seconds.</p>
+                    <p><strong>Alert Volume:</strong> Adjust the volume of beeps or speech from silent to maximum.</p>
+                    <p><strong>Use Speech:</strong> Toggle between beep sounds and spoken numbers. When enabled, the timer will speak countdown numbers (e.g., "three", "two", "one") instead of beeping.</p>
+                    <p><strong>Voice Gender:</strong> Choose between male and female voice for speech synthesis (only visible when speech is enabled).</p>
+                    <p><strong>Test Speech:</strong> Click the test button to hear a sample of your selected voice and volume.</p>
+                </div>
+            </Popover>
+
+            <Popover
+                isOpen={manageTimersHelpOpen}
+                onClose={() => setManageTimersHelpOpen(false)}
+                title="Manage Timers Help"
+            >
+                <div className="text-sm space-y-2">
+                    <p><strong>Save As...:</strong> Save your current configuration as a new preset with all settings (intervals, alerts, speech preferences).</p>
+                    <p><strong>Load Timer:</strong> Use the dropdown to load a saved preset or select "-- New Timer --" to start fresh.</p>
+                    <p><strong>Export:</strong> Download the current timer as a JSON file to save to your device.</p>
+                    <p><strong>Share:</strong> Share timer directly via WhatsApp, email, or other apps. Perfect for coaches sending programs to clients!</p>
+                    <p><strong>Import:</strong> Load a timer file shared by a coach or from another device. The timer will be saved locally with all original settings.</p>
+                </div>
+            </Popover>
         </div>
     );
 };
@@ -1356,7 +1389,6 @@ const WorkoutTimer: React.FC = () => {
     const [alert4, setAlert4] = useState<number | null>(10);
     const [alert5, setAlert5] = useState<number | null>(null);
     const [alert6, setAlert6] = useState<number | null>(null);
-    const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
 
     const { requestWakeLock, releaseWakeLock } = useWakeLock();
 
@@ -1550,43 +1582,6 @@ const WorkoutTimer: React.FC = () => {
         setView('config');
     };
 
-    const helpContent = (
-      <>
-        <p className="mb-3 text-slate-600 dark:text-slate-300">
-            This versatile timer is designed for various training styles. Here's a quick guide to its features:
-        </p>
-        <div className="space-y-4">
-            <div>
-                <h4 className="font-bold text-slate-800 dark:text-slate-100">Timer Modes</h4>
-                <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1 mt-1">
-                    <li><strong>Rolling Rest:</strong> Ideal for automatically timed rests between sets. Set a lead-in, the number of sets you'll perform, and the rest duration. The timer will run for (n-1) rest periods for 'n' sets.</li>
-                    <li><strong>Manual Rest:</strong> Perfect for strength training. After a set, manually start your timed rest period.</li>
-                </ul>
-            </div>
-             <div>
-                <h4 className="font-bold text-slate-800 dark:text-slate-100">Alert Settings</h4>
-                <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1 mt-1">
-                    <li><strong>Alert Intervals:</strong> Configure up to 6 countdown alerts using separate fields. Desktop shows number inputs; mobile uses easy tumbler-style pickers. Default values are 10, 3, 2, 1 seconds.</li>
-                    <li><strong>Alert Volume:</strong> Adjust the volume of beeps or speech from silent to maximum.</li>
-                    <li><strong>Use Speech:</strong> Toggle between beep sounds and spoken numbers. When enabled, the timer will speak countdown numbers (e.g., "three", "two", "one") instead of beeping.</li>
-                    <li><strong>Voice Gender:</strong> Choose between male and female voice for speech synthesis (only visible when speech is enabled).</li>
-                    <li><strong>Test Speech:</strong> Click the test button to hear a sample of your selected voice and volume.</li>
-                </ul>
-            </div>
-            <div>
-                <h4 className="font-bold text-slate-800 dark:text-slate-100">Manage Timers</h4>
-                <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1 mt-1">
-                    <li><strong>Save As...:</strong> Save your current configuration as a new preset with all settings (intervals, alerts, speech preferences).</li>
-                    <li><strong>Load Timer:</strong> Use the dropdown to load a saved preset or select "-- New Timer --" to start fresh.</li>
-                    <li><strong>Export:</strong> Download the current timer as a JSON file to save to your device.</li>
-                    <li><strong>Share:</strong> Share timer directly via WhatsApp, email, or other apps (perfect for coaches sending programs to clients).</li>
-                    <li><strong>Import:</strong> Load a timer file shared by a coach or from another device. The timer will be saved locally with all original settings.</li>
-                </ul>
-            </div>
-        </div>
-      </>
-    );
-    
     if (view === 'finished') {
         return (
             <div className="fixed inset-0 bg-green-600 text-white flex flex-col items-center justify-center text-center p-4 animate-fadeIn">
@@ -1655,38 +1650,28 @@ const WorkoutTimer: React.FC = () => {
     }
 
     return (
-        <>
-            <Popover 
-                isOpen={isHelpPopoverOpen}
-                onClose={() => setIsHelpPopoverOpen(false)}
-                title="How to Use the Workout Timer"
-            >
-                {helpContent}
-            </Popover>
-            <ConfigurationScreen
-                timerMode={timerMode} setTimerMode={setTimerMode}
-                leadIn={leadIn} setLeadIn={setLeadIn}
-                sets={sets} setSets={setSets}
-                restTime={restTime} setRestTime={setRestTime}
-                alertVolume={alertVolume} onVolumeChange={handleVolumeChange}
-                useSpeech={useSpeech} setUseSpeech={setUseSpeech}
-                voiceGender={voiceGender} setVoiceGender={setVoiceGender}
-                alert1={alert1} setAlert1={setAlert1}
-                alert2={alert2} setAlert2={setAlert2}
-                alert3={alert3} setAlert3={setAlert3}
-                alert4={alert4} setAlert4={setAlert4}
-                alert5={alert5} setAlert5={setAlert5}
-                alert6={alert6} setAlert6={setAlert6}
-                savedTimers={savedTimers}
-                saveTimer={saveTimer}
-                loadTimer={handleLoadTimer}
-                onImport={handleImportTimer}
-                onStart={handleStartWorkout}
-                loadedTimerId={loadedTimerId}
-                onHelpClick={() => setIsHelpPopoverOpen(true)}
-                onResetConfig={() => handleLoadTimer('')}
-            />
-        </>
+        <ConfigurationScreen
+            timerMode={timerMode} setTimerMode={setTimerMode}
+            leadIn={leadIn} setLeadIn={setLeadIn}
+            sets={sets} setSets={setSets}
+            restTime={restTime} setRestTime={setRestTime}
+            alertVolume={alertVolume} onVolumeChange={handleVolumeChange}
+            useSpeech={useSpeech} setUseSpeech={setUseSpeech}
+            voiceGender={voiceGender} setVoiceGender={setVoiceGender}
+            alert1={alert1} setAlert1={setAlert1}
+            alert2={alert2} setAlert2={setAlert2}
+            alert3={alert3} setAlert3={setAlert3}
+            alert4={alert4} setAlert4={setAlert4}
+            alert5={alert5} setAlert5={setAlert5}
+            alert6={alert6} setAlert6={setAlert6}
+            savedTimers={savedTimers}
+            saveTimer={saveTimer}
+            loadTimer={handleLoadTimer}
+            onImport={handleImportTimer}
+            onStart={handleStartWorkout}
+            loadedTimerId={loadedTimerId}
+            onResetConfig={() => handleLoadTimer('')}
+        />
     );
 };
 
