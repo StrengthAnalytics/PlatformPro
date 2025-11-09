@@ -724,7 +724,7 @@ const ConfigurationScreen = ({
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
     const loadedTimerName = loadedTimerId ? savedTimers[loadedTimerId]?.name : null;
     const isMobile = useIsMobile();
-    const [openPicker, setOpenPicker] = useState<null | 'leadIn' | 'sets' | 'rest' | 'alerts'>(null);
+    const [openPicker, setOpenPicker] = useState<null | 'leadIn' | 'sets' | 'rest' | 'alert1' | 'alert2' | 'alert3' | 'alert4' | 'alert5' | 'alert6'>(null);
 
     const handleSaveClick = () => {
         if (!timerNameToSave) return;
@@ -843,105 +843,71 @@ const ConfigurationScreen = ({
                             <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">Countdown beeps at (seconds):</label>
                             {isMobile ? (
                                 <div className="space-y-2">
-                                    <div onClick={() => setOpenPicker(openPicker === 'alerts' ? null : 'alerts')} className="flex justify-between items-center cursor-pointer p-2 bg-white dark:bg-slate-700 rounded-md border border-slate-300 dark:border-slate-600">
-                                        <span className="text-sm text-slate-700 dark:text-slate-200">Alert Intervals</span>
-                                        <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-                                            {[alert1, alert2, alert3, alert4, alert5, alert6]
-                                                .filter(v => v !== null)
-                                                .sort((a, b) => (b ?? 0) - (a ?? 0))
-                                                .join(', ') || 'None'}
-                                        </span>
-                                    </div>
-                                    {openPicker === 'alerts' && (
-                                        <div className="mt-4 animate-fadeIn">
-                                            <div className="grid grid-cols-3 gap-2 p-4 bg-slate-100 dark:bg-slate-900 rounded-lg">
-                                                <div className="text-center">
-                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 1</label>
-                                                    <TumblerAlertPicker value={alert1} onChange={setAlert1} />
-                                                </div>
-                                                <div className="text-center">
-                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 2</label>
-                                                    <TumblerAlertPicker value={alert2} onChange={setAlert2} />
-                                                </div>
-                                                <div className="text-center">
-                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 3</label>
-                                                    <TumblerAlertPicker value={alert3} onChange={setAlert3} />
-                                                </div>
-                                                <div className="text-center">
-                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 4</label>
-                                                    <TumblerAlertPicker value={alert4} onChange={setAlert4} />
-                                                </div>
-                                                <div className="text-center">
-                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 5</label>
-                                                    <TumblerAlertPicker value={alert5} onChange={setAlert5} />
-                                                </div>
-                                                <div className="text-center">
-                                                    <label className="block text-xs text-slate-600 dark:text-slate-400 mb-2">Alert 6</label>
-                                                    <TumblerAlertPicker value={alert6} onChange={setAlert6} />
-                                                </div>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {/* Alert 6 - top left */}
+                                        <div className="border-b border-slate-200 dark:border-slate-700 pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert6' ? null : 'alert6')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 6</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert6 ?? '-'}</span>
                                             </div>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Set to 0 to disable an alert. Alerts will beep at the specified seconds during countdown.</p>
+                                            {openPicker === 'alert6' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert6} onChange={setAlert6} /></div>}
                                         </div>
-                                    )}
+                                        {/* Alert 5 */}
+                                        <div className="border-b border-slate-200 dark:border-slate-700 pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert5' ? null : 'alert5')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 5</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert5 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert5' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert5} onChange={setAlert5} /></div>}
+                                        </div>
+                                        {/* Alert 4 */}
+                                        <div className="border-b border-slate-200 dark:border-slate-700 pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert4' ? null : 'alert4')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 4</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert4 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert4' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert4} onChange={setAlert4} /></div>}
+                                        </div>
+                                        {/* Alert 3 */}
+                                        <div className="pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert3' ? null : 'alert3')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 3</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert3 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert3' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert3} onChange={setAlert3} /></div>}
+                                        </div>
+                                        {/* Alert 2 */}
+                                        <div className="pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert2' ? null : 'alert2')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 2</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert2 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert2' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert2} onChange={setAlert2} /></div>}
+                                        </div>
+                                        {/* Alert 1 - bottom right */}
+                                        <div className="pb-2">
+                                            <div onClick={() => setOpenPicker(openPicker === 'alert1' ? null : 'alert1')} className="flex justify-between items-center cursor-pointer">
+                                                <label className="text-sm font-medium text-slate-700 dark:text-slate-200">Alert 1</label>
+                                                <span className="text-sm font-semibold text-slate-500 dark:text-slate-400">{alert1 ?? '-'}</span>
+                                            </div>
+                                            {openPicker === 'alert1' && <div className="mt-2 animate-fadeIn"><TumblerAlertPicker value={alert1} onChange={setAlert1} /></div>}
+                                        </div>
+                                    </div>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">Tap an alert to set its value. Set to 0 to disable.</p>
                                 </div>
                             ) : (
                                 <div>
                                     <div className="flex gap-2 justify-between">
                                         <div className="flex-1">
-                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 1</label>
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 6</label>
                                             <input
                                                 type="number"
                                                 min="0"
                                                 max="60"
-                                                value={alert1 ?? ''}
+                                                value={alert6 ?? ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
-                                                    setAlert1(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
-                                                }}
-                                                placeholder="-"
-                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 2</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="60"
-                                                value={alert2 ?? ''}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    setAlert2(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
-                                                }}
-                                                placeholder="-"
-                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 3</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="60"
-                                                value={alert3 ?? ''}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    setAlert3(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
-                                                }}
-                                                placeholder="-"
-                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 4</label>
-                                            <input
-                                                type="number"
-                                                min="0"
-                                                max="60"
-                                                value={alert4 ?? ''}
-                                                onChange={(e) => {
-                                                    const val = e.target.value;
-                                                    setAlert4(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                    setAlert6(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
                                                 }}
                                                 placeholder="-"
                                                 className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
@@ -963,15 +929,60 @@ const ConfigurationScreen = ({
                                             />
                                         </div>
                                         <div className="flex-1">
-                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 6</label>
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 4</label>
                                             <input
                                                 type="number"
                                                 min="0"
                                                 max="60"
-                                                value={alert6 ?? ''}
+                                                value={alert4 ?? ''}
                                                 onChange={(e) => {
                                                     const val = e.target.value;
-                                                    setAlert6(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                    setAlert4(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 3</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert3 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert3(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 2</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert2 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert2(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
+                                                }}
+                                                placeholder="-"
+                                                className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="block text-xs text-slate-600 dark:text-slate-400 mb-1">Alert 1</label>
+                                            <input
+                                                type="number"
+                                                min="0"
+                                                max="60"
+                                                value={alert1 ?? ''}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setAlert1(val === '' ? null : Math.max(0, Math.min(60, parseInt(val) || 0)));
                                                 }}
                                                 placeholder="-"
                                                 className="w-full p-2 border rounded-md text-center bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-50 text-sm"
@@ -1067,13 +1078,14 @@ const WorkoutTimer: React.FC = () => {
     const [loadedTimerId, setLoadedTimerId] = useState<string | null>(null);
     const [alertTimings, setAlertTimings] = useState<number[]>(DEFAULT_ALERT_TIMINGS);
     const [alertVolume, setAlertVolume] = useState(0.5);
-    // State for 6 separate alert interval fields (left to right)
+    // State for 6 separate alert interval fields
+    // Reversed order: alert6 is top-left (highest), alert1 is bottom-right (lowest)
     const [alert1, setAlert1] = useState<number | null>(null);
     const [alert2, setAlert2] = useState<number | null>(null);
-    const [alert3, setAlert3] = useState<number | null>(10);
-    const [alert4, setAlert4] = useState<number | null>(3);
-    const [alert5, setAlert5] = useState<number | null>(2);
-    const [alert6, setAlert6] = useState<number | null>(1);
+    const [alert3, setAlert3] = useState<number | null>(1);
+    const [alert4, setAlert4] = useState<number | null>(2);
+    const [alert5, setAlert5] = useState<number | null>(3);
+    const [alert6, setAlert6] = useState<number | null>(10);
     const [isHelpPopoverOpen, setIsHelpPopoverOpen] = useState(false);
 
     const { requestWakeLock, releaseWakeLock } = useWakeLock();
@@ -1110,14 +1122,15 @@ const WorkoutTimer: React.FC = () => {
 
     // Populate alert fields from alertTimings array
     const populateAlertFields = useCallback((timings: number[]) => {
-        // Sort in descending order and pad to 6 slots
+        // Sort in descending order and map to reversed positions
+        // alert6 gets highest value, alert1 gets lowest
         const sorted = [...timings].sort((a, b) => b - a);
-        setAlert1(sorted[0] ?? null);
-        setAlert2(sorted[1] ?? null);
-        setAlert3(sorted[2] ?? null);
-        setAlert4(sorted[3] ?? null);
-        setAlert5(sorted[4] ?? null);
-        setAlert6(sorted[5] ?? null);
+        setAlert6(sorted[0] ?? null);
+        setAlert5(sorted[1] ?? null);
+        setAlert4(sorted[2] ?? null);
+        setAlert3(sorted[3] ?? null);
+        setAlert2(sorted[4] ?? null);
+        setAlert1(sorted[5] ?? null);
     }, []);
 
     // Initialize alert fields with default values on mount
