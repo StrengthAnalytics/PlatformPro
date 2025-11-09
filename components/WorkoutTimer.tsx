@@ -1565,15 +1565,22 @@ const WorkoutTimer: React.FC = () => {
             </div>
              <div>
                 <h4 className="font-bold text-slate-800 dark:text-slate-100">Alert Settings</h4>
-                <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                    Customize when you hear countdown beeps by entering a comma-separated list of seconds (e.g., <code>10, 5, 3, 2, 1</code>). This setting applies to all timer modes and is saved with each preset.
-                </p>
+                <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1 mt-1">
+                    <li><strong>Alert Intervals:</strong> Configure up to 6 countdown alerts using separate fields. Desktop shows number inputs; mobile uses easy tumbler-style pickers. Default values are 10, 3, 2, 1 seconds.</li>
+                    <li><strong>Alert Volume:</strong> Adjust the volume of beeps or speech from silent to maximum.</li>
+                    <li><strong>Use Speech:</strong> Toggle between beep sounds and spoken numbers. When enabled, the timer will speak countdown numbers (e.g., "three", "two", "one") instead of beeping.</li>
+                    <li><strong>Voice Gender:</strong> Choose between male and female voice for speech synthesis (only visible when speech is enabled).</li>
+                    <li><strong>Test Speech:</strong> Click the test button to hear a sample of your selected voice and volume.</li>
+                </ul>
             </div>
             <div>
                 <h4 className="font-bold text-slate-800 dark:text-slate-100">Manage Timers</h4>
                 <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1 mt-1">
-                    <li><strong>Save As...:</strong> Save your current configuration as a new preset.</li>
+                    <li><strong>Save As...:</strong> Save your current configuration as a new preset with all settings (intervals, alerts, speech preferences).</li>
                     <li><strong>Load Timer:</strong> Use the dropdown to load a saved preset or select "-- New Timer --" to start fresh.</li>
+                    <li><strong>Export:</strong> Download the current timer as a JSON file to save to your device.</li>
+                    <li><strong>Share:</strong> Share timer directly via WhatsApp, email, or other apps (perfect for coaches sending programs to clients).</li>
+                    <li><strong>Import:</strong> Load a timer file shared by a coach or from another device. The timer will be saved locally with all original settings.</li>
                 </ul>
             </div>
         </div>
