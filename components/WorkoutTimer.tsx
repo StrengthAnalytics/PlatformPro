@@ -813,6 +813,7 @@ const ConfigurationScreen = ({
 }: any) => {
     const [timerNameToSave, setTimerNameToSave] = useState('');
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
+    const [timerSetupHelpOpen, setTimerSetupHelpOpen] = useState(false);
     const [alertHelpOpen, setAlertHelpOpen] = useState(false);
     const [manageTimersHelpOpen, setManageTimersHelpOpen] = useState(false);
     const loadedTimerName = loadedTimerId ? savedTimers[loadedTimerId]?.name : null;
@@ -923,7 +924,7 @@ const ConfigurationScreen = ({
 
     return (
         <div>
-             <Section title="Timer Setup" headerAction={<IconButton variant="danger" onClick={onResetConfig}>Reset</IconButton>}>
+             <Section title="Timer Setup" onHelpClick={() => setTimerSetupHelpOpen(true)} headerAction={<IconButton variant="danger" onClick={onResetConfig}>Reset</IconButton>}>
                 <div className="md:col-span-2 lg:col-span-3">
                     <div className="mb-6 flex flex-col items-center">
                         <label className="mb-2 text-sm font-medium text-slate-700 dark:text-slate-300">Timer Mode</label>
@@ -1322,6 +1323,23 @@ const ConfigurationScreen = ({
                     </div>
                 </div>
             )}
+
+            <Popover
+                isOpen={timerSetupHelpOpen}
+                onClose={() => setTimerSetupHelpOpen(false)}
+                title="Timer Setup Help"
+            >
+                <div className="text-sm space-y-2">
+                    <p><strong>Timer Mode:</strong></p>
+                    <ul className="list-disc list-inside ml-2 space-y-1">
+                        <li><strong>Rolling Rest:</strong> Timer starts automatically after each set. When rest time ends, a new set begins immediately.</li>
+                        <li><strong>Manual Rest:</strong> Timer pauses after each set. You must manually start the next set when ready.</li>
+                    </ul>
+                    <p><strong>Lead In Time:</strong> Preparation time before the first set begins. Use this to get into position.</p>
+                    <p><strong>Sets:</strong> Number of work intervals to complete.</p>
+                    <p><strong>Rest Between Sets:</strong> Duration of rest/recovery time between each work set.</p>
+                </div>
+            </Popover>
 
             <Popover
                 isOpen={alertHelpOpen}
