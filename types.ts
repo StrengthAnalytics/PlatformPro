@@ -73,12 +73,20 @@ export interface LiftState {
 
 export type LiftsState = Record<LiftType, LiftState>;
 
+export interface PersonalBest {
+  weight: string;
+  date: string;
+}
+
+export type PersonalBests = Record<LiftType, PersonalBest>;
+
 export interface AppState {
   version?: number;
   details: CompetitionDetails;
   equipment: EquipmentSettings;
   branding: BrandingState;
   lifts: LiftsState;
+  personalBests: PersonalBests;
   gameDayState: Record<LiftType, GameDayLiftState>;
 }
 
@@ -86,6 +94,7 @@ export interface PlanData {
   details: CompetitionDetails;
   equipment: EquipmentSettings;
   lifts: LiftsState;
+  personalBests: PersonalBests;
 }
 
 // For Game Day Mode local state
