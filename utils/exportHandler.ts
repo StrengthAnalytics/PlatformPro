@@ -517,58 +517,6 @@ export const exportToMobilePDF = (state: AppState): Blob => {
         yPos += rowHeight;
     });
 
-    // --- PERSONAL BESTS SECTION ---
-    const hasPBData = personalBests && (
-        (personalBests.squat?.weight && personalBests.squat?.date) ||
-        (personalBests.bench?.weight && personalBests.bench?.date) ||
-        (personalBests.deadlift?.weight && personalBests.deadlift?.date)
-    );
-
-    if (hasPBData) {
-        yPos += 8;
-        doc.setDrawColor(226, 232, 240);
-        doc.setLineWidth(0.5);
-        doc.line(margin + 5, yPos, margin + contentWidth - 5, yPos);
-        yPos += 8;
-
-        doc.setFontSize(22);
-        doc.setTextColor(17, 24, 39);
-        doc.text('Personal Bests', pageWidth / 2, yPos, { align: 'center' });
-        yPos += 12;
-
-        doc.setFontSize(16);
-        const pbData = [
-            { lift: 'Squat', weight: personalBests.squat?.weight, date: personalBests.squat?.date },
-            { lift: 'Bench', weight: personalBests.bench?.weight, date: personalBests.bench?.date },
-            { lift: 'Deadlift', weight: personalBests.deadlift?.weight, date: personalBests.deadlift?.date },
-        ];
-
-        pbData.forEach((pb, index) => {
-            if (pb.weight && pb.date) {
-                if (index % 2 === 1) {
-                    doc.setFillColor(248, 250, 252);
-                    doc.rect(margin, yPos - 12.5, contentWidth, rowHeight, 'F');
-                }
-
-                doc.setTextColor(100, 116, 139);
-                doc.setFont('helvetica', 'bold');
-                doc.text(`${pb.lift}:`, margin + 2, yPos);
-
-                doc.setTextColor(17, 24, 39);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`${pb.weight} ${unit}`, margin + valueOffset, yPos);
-
-                const dateText = formatPBDate(pb.date, details.competitionDate);
-                doc.setTextColor(71, 85, 105); // slate-600
-                doc.setFontSize(14);
-                doc.text(dateText, margin + valueOffset + 30, yPos);
-                doc.setFontSize(16);
-
-                yPos += rowHeight;
-            }
-        });
-    }
-
     // --- LIFT PAGES ---
     const drawMobileLiftPage = (liftName: string, liftType: LiftType, liftData: LiftState) => {
         doc.addPage();
@@ -584,6 +532,31 @@ export const exportToMobilePDF = (state: AppState): Blob => {
         pageY += 16 + 12;
 
         const cbSize = 8;
+
+        // Personal Best Section (if available)
+        const pb = personalBests?.[liftType];
+        if (pb?.weight && pb?.date) {
+            doc.setFillColor(249, 250, 251); // slate-50
+            doc.rect(margin, pageY - 6, contentWidth, 18, 'F');
+
+            doc.setFontSize(14);
+            doc.setTextColor(100, 116, 139); // slate-500
+            doc.setFont('helvetica', 'bold');
+            doc.text('Personal Best:', margin + 2, pageY + 3);
+
+            doc.setTextColor(17, 24, 39);
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16);
+            doc.text(`${pb.weight} ${unit}`, margin + 50, pageY + 3);
+
+            const dateText = formatPBDate(pb.date, details.competitionDate);
+            doc.setTextColor(71, 85, 105); // slate-600
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(13);
+            doc.text(dateText, margin + 50, pageY + 10);
+
+            pageY += 18 + 8;
+        }
 
         // Attempts Section
         doc.setFontSize(18);
