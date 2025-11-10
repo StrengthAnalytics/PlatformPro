@@ -5,11 +5,12 @@ import { AppState, LiftType, LiftState, OneRepMaxExportData } from '../types';
 import { getPlateBreakdown, getLbsPlateBreakdown } from './calculator';
 
 export const exportToCSV = (state: AppState) => {
-    const { details, equipment, lifts } = state;
+    const { details, equipment, lifts, personalBests } = state;
     const fields = [
         'eventName','lifterName','weightClass','bodyWeight','gender','competitionDate','weighInTime',
         'squatRackHeight','squatStands','benchRackHeight','handOut','benchSafetyHeight',
-        'squat1','squat2','squat3','bench1','bench2','bench3','deadlift1','deadlift2','deadlift3'
+        'squat1','squat2','squat3','bench1','bench2','bench3','deadlift1','deadlift2','deadlift3',
+        'squatPBWeight','squatPBDate','benchPBWeight','benchPBDate','deadliftPBWeight','deadliftPBDate'
     ];
 
     const liftWarmupFields: string[] = [];
@@ -35,6 +36,12 @@ export const exportToCSV = (state: AppState) => {
         deadlift1: lifts.deadlift.attempts['1'],
         deadlift2: lifts.deadlift.attempts['2'],
         deadlift3: lifts.deadlift.attempts['3'],
+        squatPBWeight: personalBests?.squat?.weight || '',
+        squatPBDate: personalBests?.squat?.date || '',
+        benchPBWeight: personalBests?.bench?.weight || '',
+        benchPBDate: personalBests?.bench?.date || '',
+        deadliftPBWeight: personalBests?.deadlift?.weight || '',
+        deadliftPBDate: personalBests?.deadlift?.date || '',
     };
 
     lifts.squat.warmups.forEach((s, i) => { data[`squatWarmup${i+1}Weight`] = s.weight; data[`squatWarmup${i+1}Reps`] = s.reps; });
@@ -59,8 +66,41 @@ export const exportToCSV = (state: AppState) => {
     URL.revokeObjectURL(url);
 };
 
+// Helper function to calculate days between dates
+const calculateDaysBeforeComp = (pbDate: string, compDate: string): number | null => {
+    if (!pbDate || !compDate) return null;
+    try {
+        const pb = new Date(pbDate);
+        const comp = new Date(compDate);
+        const diffTime = comp.getTime() - pb.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    } catch {
+        return null;
+    }
+};
+
+// Helper function to format PB date display
+const formatPBDate = (pbDate: string, compDate: string): string => {
+    if (!pbDate) return '';
+    const daysBefore = calculateDaysBeforeComp(pbDate, compDate);
+    if (daysBefore !== null && daysBefore >= 0) {
+        return `${daysBefore} days before comp`;
+    }
+    // Format date as DD/MM/YYYY
+    try {
+        const date = new Date(pbDate);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+    } catch {
+        return pbDate;
+    }
+};
+
 export const exportToPDF = (state: AppState): Blob => {
-    const { details, equipment, lifts, branding } = state;
+    const { details, equipment, lifts, branding, personalBests } = state;
     const doc = new jsPDF('portrait', 'mm', 'a4');
     const { unit } = details;
 
@@ -154,7 +194,57 @@ export const exportToPDF = (state: AppState): Blob => {
     }
 
     yPos = currentY; // Set Y to be after the details section
-    
+
+    // --- PERSONAL BESTS SECTION ---
+    const hasPBData = personalBests && (
+        (personalBests.squat?.weight && personalBests.squat?.date) ||
+        (personalBests.bench?.weight && personalBests.bench?.date) ||
+        (personalBests.deadlift?.weight && personalBests.deadlift?.date)
+    );
+
+    if (hasPBData) {
+        yPos += 4;
+        doc.setFontSize(14);
+        doc.setTextColor(17, 24, 39);
+        doc.text('Personal Bests', margin, yPos);
+        yPos += 5;
+        doc.setDrawColor(203, 213, 225);
+        doc.line(margin, yPos, margin + contentWidth, yPos);
+        yPos += 6;
+
+        doc.setFontSize(10);
+        doc.setTextColor(48, 48, 48);
+        const pbRowHeight = 7;
+        let pbY = yPos;
+        const pbCol1 = margin + 2;
+        const pbCol2 = margin + 40;
+        const pbCol3 = margin + 110;
+
+        const pbData = [
+            { lift: 'Squat', weight: personalBests.squat?.weight, date: personalBests.squat?.date },
+            { lift: 'Bench', weight: personalBests.bench?.weight, date: personalBests.bench?.date },
+            { lift: 'Deadlift', weight: personalBests.deadlift?.weight, date: personalBests.deadlift?.date },
+        ];
+
+        pbData.forEach((pb, index) => {
+            if (pb.weight && pb.date) {
+                if (index % 2 === 1) {
+                    doc.setFillColor(248, 250, 252);
+                    doc.rect(margin, pbY - 4.5, contentWidth, pbRowHeight, 'F');
+                }
+
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${pb.lift}:`, pbCol1, pbY);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${pb.weight} ${unit}`, pbCol2, pbY);
+                doc.text(formatPBDate(pb.date, details.competitionDate), pbCol3, pbY);
+
+                pbY += pbRowHeight;
+            }
+        });
+
+        yPos = pbY + 2;
+    }
 
     // --- LIFT SECTION DRAWING FUNCTION ---
     const drawLiftSection = (liftName: string, liftType: LiftType) => {
@@ -326,7 +416,7 @@ export const exportToPDF = (state: AppState): Blob => {
 
 
 export const exportToMobilePDF = (state: AppState): Blob => {
-    const { details, equipment, lifts, branding } = state;
+    const { details, equipment, lifts, branding, personalBests } = state;
     const doc = new jsPDF('portrait', 'mm', 'a4');
     const { unit } = details;
     
@@ -426,6 +516,58 @@ export const exportToMobilePDF = (state: AppState): Blob => {
         doc.text(detail.value || '', margin + valueOffset, yPos);
         yPos += rowHeight;
     });
+
+    // --- PERSONAL BESTS SECTION ---
+    const hasPBData = personalBests && (
+        (personalBests.squat?.weight && personalBests.squat?.date) ||
+        (personalBests.bench?.weight && personalBests.bench?.date) ||
+        (personalBests.deadlift?.weight && personalBests.deadlift?.date)
+    );
+
+    if (hasPBData) {
+        yPos += 8;
+        doc.setDrawColor(226, 232, 240);
+        doc.setLineWidth(0.5);
+        doc.line(margin + 5, yPos, margin + contentWidth - 5, yPos);
+        yPos += 8;
+
+        doc.setFontSize(22);
+        doc.setTextColor(17, 24, 39);
+        doc.text('Personal Bests', pageWidth / 2, yPos, { align: 'center' });
+        yPos += 12;
+
+        doc.setFontSize(16);
+        const pbData = [
+            { lift: 'Squat', weight: personalBests.squat?.weight, date: personalBests.squat?.date },
+            { lift: 'Bench', weight: personalBests.bench?.weight, date: personalBests.bench?.date },
+            { lift: 'Deadlift', weight: personalBests.deadlift?.weight, date: personalBests.deadlift?.date },
+        ];
+
+        pbData.forEach((pb, index) => {
+            if (pb.weight && pb.date) {
+                if (index % 2 === 1) {
+                    doc.setFillColor(248, 250, 252);
+                    doc.rect(margin, yPos - 12.5, contentWidth, rowHeight, 'F');
+                }
+
+                doc.setTextColor(100, 116, 139);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`${pb.lift}:`, margin + 2, yPos);
+
+                doc.setTextColor(17, 24, 39);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${pb.weight} ${unit}`, margin + valueOffset, yPos);
+
+                const dateText = formatPBDate(pb.date, details.competitionDate);
+                doc.setTextColor(71, 85, 105); // slate-600
+                doc.setFontSize(14);
+                doc.text(dateText, margin + valueOffset + 30, yPos);
+                doc.setFontSize(16);
+
+                yPos += rowHeight;
+            }
+        });
+    }
 
     // --- LIFT PAGES ---
     const drawMobileLiftPage = (liftName: string, liftType: LiftType, liftData: LiftState) => {

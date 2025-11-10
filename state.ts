@@ -1,4 +1,4 @@
-import type { AppState, LiftsState, LiftType, GameDayLiftState } from './types';
+import type { AppState, LiftsState, LiftType, GameDayLiftState, PersonalBests } from './types';
 
 export const CURRENT_APP_VERSION = 1;
 
@@ -6,6 +6,12 @@ export const initialLiftsState: LiftsState = {
     squat: { attempts: { '1': '', '2': '', '3': '' }, warmups: Array(8).fill({ weight: '', reps: '' }), cues: ['', '', ''], error: false, includeCollars: false, warmupStrategy: 'default', dynamicWarmupSettings: { numSets: '6', startWeight: '20', finalWarmupPercent: '92' }, openerForWarmups: '', coachingNote: '' },
     bench: { attempts: { '1': '', '2': '', '3': '' }, warmups: Array(8).fill({ weight: '', reps: '' }), cues: ['', '', ''], error: false, includeCollars: false, warmupStrategy: 'default', dynamicWarmupSettings: { numSets: '6', startWeight: '20', finalWarmupPercent: '92' }, openerForWarmups: '', coachingNote: '' },
     deadlift: { attempts: { '1': '', '2': '', '3': '' }, warmups: Array(8).fill({ weight: '', reps: '' }), cues: ['', '', ''], error: false, includeCollars: false, warmupStrategy: 'default', dynamicWarmupSettings: { numSets: '6', startWeight: '20', finalWarmupPercent: '92' }, openerForWarmups: '', coachingNote: '' },
+};
+
+export const initialPersonalBests: PersonalBests = {
+    squat: { weight: '', date: '' },
+    bench: { weight: '', date: '' },
+    deadlift: { weight: '', date: '' },
 };
 
 export const deriveGameDayStateFromLifts = (lifts: LiftsState): Record<LiftType, GameDayLiftState> => {
@@ -37,5 +43,6 @@ export const initialAppState: AppState = {
     secondaryColor: '#1e293b', // slate-800
   },
   lifts: initialLiftsState,
+  personalBests: initialPersonalBests,
   gameDayState: deriveGameDayStateFromLifts(initialLiftsState),
 };

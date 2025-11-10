@@ -3,6 +3,7 @@ import Section from './components/Section';
 import LiftSection from './components/LiftSection';
 import SaveLoadSection from './components/SaveLoadSection';
 import BrandingSection from './components/BrandingSection';
+import PersonalBestsSection from './components/PersonalBestsSection';
 import CollapsibleSection from './components/CollapsibleSection';
 import Popover from './components/Popover';
 import SummarySidebar from './components/SummarySidebar';
@@ -128,23 +129,25 @@ const App: React.FC = () => {
       const savedDetails = localStorage.getItem('plp_details');
       const savedEquipment = localStorage.getItem('plp_equipment');
       const savedBranding = localStorage.getItem('plp_branding');
+      const savedPersonalBests = localStorage.getItem('plp_personalBests');
       const allPlansRaw = localStorage.getItem('plp_allPlans');
       const savedPlanInLbs = localStorage.getItem('plp_planInLbs');
       const savedCoachingMode = localStorage.getItem('plp_coachingMode');
       const savedAutoGenerate = localStorage.getItem('plp_autoGenerateWarmups');
-      
+
       if (savedPlanInLbs) setPlanAttemptsInLbs(JSON.parse(savedPlanInLbs));
       if (savedCoachingMode) setIsCoachingMode(JSON.parse(savedCoachingMode));
       if (savedAutoGenerate) setAutoGenerateWarmups(JSON.parse(savedAutoGenerate));
-      
+
       const details = savedDetails ? JSON.parse(savedDetails) : initialAppState.details;
       if (!details.unit) details.unit = 'kg';
       if (!details.attemptStrategy) details.attemptStrategy = 'aggressive';
 
       const equipment = savedEquipment ? JSON.parse(savedEquipment) : initialAppState.equipment;
       const branding = savedBranding ? JSON.parse(savedBranding) : initialAppState.branding;
+      const personalBests = savedPersonalBests ? JSON.parse(savedPersonalBests) : initialAppState.personalBests;
 
-      setAppState(prev => ({ ...prev, details, equipment, branding }));
+      setAppState(prev => ({ ...prev, details, equipment, branding, personalBests }));
       
       if (allPlansRaw) {
         const allPlans = JSON.parse(allPlansRaw);
@@ -171,6 +174,14 @@ const App: React.FC = () => {
         console.error("Failed to save state to localStorage", error);
     }
   }, [appState.details, appState.equipment]);
+
+  useEffect(() => {
+    try {
+        localStorage.setItem('plp_personalBests', JSON.stringify(appState.personalBests));
+    } catch (error) {
+        console.error("Failed to save personal bests to localStorage", error);
+    }
+  }, [appState.personalBests]);
 
   useEffect(() => {
       if (theme === 'dark') {
@@ -323,7 +334,18 @@ const App: React.FC = () => {
     setAppState(prev => ({ ...prev, equipment: { ...prev.equipment, [field]: value } }));
     setIsDirty(true);
   };
-  
+
+  const handlePersonalBestChange = (lift: LiftType, field: 'weight' | 'date', value: string) => {
+    setAppState(prev => ({
+      ...prev,
+      personalBests: {
+        ...prev.personalBests,
+        [lift]: { ...prev.personalBests[lift], [field]: value }
+      }
+    }));
+    setIsDirty(true);
+  };
+
   const handleBrandingChange = (field: keyof BrandingState, value: string) => {
     setAppState(prev => ({ ...prev, branding: { ...prev.branding, [field]: value } }));
   };
@@ -510,7 +532,7 @@ const App: React.FC = () => {
   };
 
   const handleExportPlan = () => {
-    const planData: PlanData = { details: appState.details, equipment: appState.equipment, lifts: appState.lifts };
+    const planData: PlanData = { details: appState.details, equipment: appState.equipment, lifts: appState.lifts, personalBests: appState.personalBests };
     const jsonString = JSON.stringify({ ...planData, version: appState.version }, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -737,8 +759,16 @@ const App: React.FC = () => {
                 </div>
 
                 <div>
-                    <CollapsibleSection 
-                        title="Export & Share Plan" 
+                    <CollapsibleSection title="Personal Bests" initiallyOpen={false}>
+                        <PersonalBestsSection
+                            personalBests={appState.personalBests}
+                            unit={details.unit}
+                            onChange={handlePersonalBestChange}
+                        />
+                    </CollapsibleSection>
+
+                    <CollapsibleSection
+                        title="Export & Share Plan"
                         initiallyOpen={!isMobile}
                         onHelpClick={() => showPopover(exportHelpContent.title, exportHelpContent.content)}
                     >
