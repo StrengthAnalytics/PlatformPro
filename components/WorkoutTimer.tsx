@@ -88,21 +88,21 @@ const audioManager = (() => {
 
 // --- SPEECH UTILITY ---
 const speechManager = (() => {
-  let voicesLoaded = false;
-
   const ensureVoicesLoaded = () => {
-    if (voicesLoaded) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
-    // Trigger voice loading
+    // Try to load voices - on mobile this might return empty array initially
+    // This call triggers voice loading on browsers that support it
     window.speechSynthesis.getVoices();
-    voicesLoaded = true;
   };
 
   const selectVoice = (voiceGender: 'male' | 'female'): SpeechSynthesisVoice | null => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return null;
 
     const voices = window.speechSynthesis.getVoices();
+
+    // If no voices available yet, return null and rely on default voice
+    if (voices.length === 0) return null;
 
     // Filter for English voices
     const englishVoices = voices.filter(voice =>
@@ -147,6 +147,10 @@ const speechManager = (() => {
       return;
     }
 
+    // Cancel any ongoing speech to prevent queue buildup (important for mobile)
+    window.speechSynthesis.cancel();
+
+    // Re-check voices are loaded (important for mobile browsers)
     ensureVoicesLoaded();
 
     // Create new utterance immediately - no delay
@@ -154,15 +158,38 @@ const speechManager = (() => {
     window.speechSynthesis.speak(utterance);
   };
 
+  // Initialize speech synthesis for mobile browsers (must be called from user interaction)
+  const initialize = () => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Force voice loading - important for mobile browsers
+    window.speechSynthesis.getVoices();
+
+    // On iOS, we need to call speak() from a user gesture to initialize
+    // Speak an empty utterance to wake up the speech synthesis
+    const utterance = new SpeechSynthesisUtterance('');
+    utterance.volume = 0;
+    window.speechSynthesis.speak(utterance);
+
+    // Immediately cancel to prevent any sound
+    setTimeout(() => {
+      window.speechSynthesis.cancel();
+      ensureVoicesLoaded();
+    }, 10);
+  };
+
   // Initialize voices on load
   if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+    // On mobile (especially iOS), voices load asynchronously
     window.speechSynthesis.addEventListener('voiceschanged', () => {
-      voicesLoaded = true;
+      ensureVoicesLoaded();
     });
+
+    // Try initial load (works on desktop, returns empty on mobile initially)
     ensureVoicesLoaded();
   }
 
-  return { speak };
+  return { speak, initialize };
 })();
 
 
@@ -1205,7 +1232,13 @@ const ConfigurationScreen = ({
                                 </label>
                                 <button
                                     id="use-speech"
-                                    onClick={() => setUseSpeech(!useSpeech)}
+                                    onClick={() => {
+                                        // If turning speech ON, initialize it (important for mobile browsers)
+                                        if (!useSpeech) {
+                                            speechManager.initialize();
+                                        }
+                                        setUseSpeech(!useSpeech);
+                                    }}
                                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 ${
                                         useSpeech ? 'bg-green-600' : 'bg-slate-300 dark:bg-slate-600'
                                     }`}
