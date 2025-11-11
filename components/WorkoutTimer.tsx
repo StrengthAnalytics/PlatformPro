@@ -300,6 +300,8 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
             }
           }
           if (prev <= 1) {
+            // Always play the extra-long beep at 0 seconds, even in voice mode
+            audioManager.playSound('extra-long', alertVolume);
             nextInterval();
             return 0;
           }
@@ -1468,6 +1470,7 @@ const WorkoutTimer: React.FC = () => {
     };
 
     const handleIntervalChange = () => {
+        // Play beep for manual operations (skip, back) and background tab handling
         audioManager.playSound('extra-long', alertVolume);
     };
     
