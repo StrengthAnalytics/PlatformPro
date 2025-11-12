@@ -153,7 +153,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Handle subscription deletion/cancellation
   if (eventType === 'subscription.deleted') {
-    const userId = subscriptionData.user_id;
+    const userId = eventData.user_id;
 
     console.log(`Removing subscription for user ${userId}`);
 
