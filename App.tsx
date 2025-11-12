@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, PricingTable } from '@clerk/clerk-react';
 import { useSubscription } from './hooks/useSubscription';
 import Section from './components/Section';
 import PricingPage from './components/PricingPage';
@@ -676,14 +676,6 @@ const App: React.FC = () => {
                   </SignUpButton>
                 </SignedOut>
                 <SignedIn>
-                  {subscription.isFree && !subscription.isLoading && (
-                    <button
-                      onClick={() => setCurrentView('pricing')}
-                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-md transition-colors shadow-lg"
-                    >
-                      Upgrade to Pro
-                    </button>
-                  )}
                   {(subscription.isPro || subscription.isEnterprise) && (
                     <button
                       onClick={() => setCurrentView('pricing')}
@@ -717,14 +709,6 @@ const App: React.FC = () => {
                     </SignUpButton>
                   </SignedOut>
                   <SignedIn>
-                    {subscription.isFree && !subscription.isLoading && currentView !== 'pricing' && (
-                      <button
-                        onClick={() => setCurrentView('pricing')}
-                        className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-md transition-colors shadow-lg"
-                      >
-                        Upgrade
-                      </button>
-                    )}
                     {(subscription.isPro || subscription.isEnterprise) && (
                       <button
                         onClick={() => setCurrentView('pricing')}
@@ -752,39 +736,34 @@ const App: React.FC = () => {
         <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12 text-center">
             <div className="mb-8">
-              <div className="inline-block p-4 bg-blue-100 dark:bg-blue-900 rounded-full mb-6">
-                <svg className="w-16 h-16 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              <div className="inline-block p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-6">
+                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                 Welcome to Platform Coach
               </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300 mb-2">
-                Your comprehensive powerlifting meet planner and training toolkit
-              </p>
-              <p className="text-base text-slate-500 dark:text-slate-400 mb-8">
-                Sign in to access all features including competition planning, workout timers, 1RM calculators, and more.
+              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
+                The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <SignInButton mode="modal">
-                  <button className="w-full sm:w-auto px-8 py-3 text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
-                    Sign In to Continue
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal">
-                  <button className="w-full sm:w-auto px-8 py-3 text-base font-semibold text-white bg-green-600 hover:bg-green-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
-                    Create Free Account
-                  </button>
-                </SignUpButton>
-              </div>
+            <div className="space-y-4 mb-12">
+              <SignInButton mode="modal">
+                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
+                  Sign In
+                </button>
+              </SignInButton>
+              <div className="text-slate-500 dark:text-slate-400">or</div>
+              <SignUpButton mode="modal">
+                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
+                  Sign Up
+                </button>
+              </SignUpButton>
             </div>
 
-            <div className="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4">Features Include:</h3>
+            <div className="pt-8 border-t border-slate-200 dark:border-slate-700">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                 <div className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -829,6 +808,43 @@ const App: React.FC = () => {
       </SignedOut>
 
       <SignedIn>
+      {/* Show loading state while checking subscription */}
+      {subscription.isLoading ? (
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16 text-center">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-12">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-6"></div>
+            <p className="text-lg text-slate-600 dark:text-slate-300">Loading your account...</p>
+          </div>
+        </div>
+      ) : !subscription.isActive || subscription.isFree ? (
+        /* User is signed in but doesn't have an active paid subscription - show pricing */
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
+          <div className="text-center mb-8">
+            <div className="inline-block p-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mb-6">
+              <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Subscribe to Access Platform Coach
+            </h2>
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-8">
+              Choose your plan to unlock the complete powerlifting toolkit used by athletes and coaches worldwide.
+            </p>
+          </div>
+
+          {/* Clerk Billing Pricing Table */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8">
+            <PricingTable />
+          </div>
+
+          <div className="text-center mt-6 text-slate-300 text-sm">
+            Questions? Contact support at your-email@example.com
+          </div>
+        </div>
+      ) : (
+        /* User has active paid subscription - show full app */
+        <>
       {currentView === 'homescreen' && <Homescreen onNavigateToPlanner={() => { setCurrentView('planner'); setViewMode('pro'); }} onNavigateToOneRepMax={() => setCurrentView('oneRepMax')} onNavigateToWarmupGenerator={() => setCurrentView('warmupGenerator')} onNavigateToVelocityProfile={() => setCurrentView('velocityProfile')} onNavigateToTechniqueScore={() => setCurrentView('techniqueScore')} onNavigateToWorkoutTimer={() => setCurrentView('workoutTimer')} />}
       {currentView === 'oneRepMax' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><OneRepMaxCalculator branding={appState.branding} /></div>}
       {currentView === 'warmupGenerator' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WarmupGenerator /></div>}
@@ -951,6 +967,8 @@ const App: React.FC = () => {
       )}
 
       {isResetModalOpen && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="bg-white dark:bg-slate-700 p-8 rounded-lg shadow-2xl max-w-sm w-full"><h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Confirm Clear Form</h3><p className="text-slate-600 dark:text-slate-300 mb-6">Are you sure you want to clear the form? This will remove all details and equipment settings, but will not delete your saved plans.</p><div className="flex justify-end gap-4"><button onClick={() => setIsResetModalOpen(false)} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-md transition-colors dark:bg-slate-600 dark:hover:bg-slate-500 dark:text-slate-100">Cancel</button><button onClick={handleFullReset} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition-colors">Yes, Clear Form</button></div></div></div>}
+        </>
+      )}
       </SignedIn>
     </div>
   );
