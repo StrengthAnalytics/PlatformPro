@@ -30,15 +30,20 @@ export function useSubscription(): SubscriptionData {
   }
 
   // Use Clerk's built-in has() method to check for active subscription
+  // Check for all possible plan names
   const hasFounderPlan = has ? has({ plan: 'free_trial_founder_price' }) : false;
+  const hasStandardPlan = has ? has({ plan: 'standard_coaching_membership' }) : false;
+
+  const hasAnyPlan = hasFounderPlan || hasStandardPlan;
 
   // Debug: Log what has() returns
   console.log('=== SUBSCRIPTION CHECK ===');
-  console.log('Checking plan "free_trial_founder_price":', hasFounderPlan);
-  console.log('has function exists:', !!has);
+  console.log('Has founder plan:', hasFounderPlan);
+  console.log('Has standard plan:', hasStandardPlan);
+  console.log('Has any plan:', hasAnyPlan);
   console.log('==========================');
 
-  if (hasFounderPlan) {
+  if (hasAnyPlan) {
     return {
       tier: 'pro',
       isActive: true,
