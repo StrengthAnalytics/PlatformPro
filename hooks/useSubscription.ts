@@ -32,6 +32,12 @@ export function useSubscription(): SubscriptionData {
   // Use Clerk's built-in has() method to check for active subscription
   const hasFounderPlan = has ? has({ plan: 'free_trial_founder_price' }) : false;
 
+  // Debug: Log what has() returns
+  console.log('=== SUBSCRIPTION CHECK ===');
+  console.log('Checking plan "free_trial_founder_price":', hasFounderPlan);
+  console.log('has function exists:', !!has);
+  console.log('==========================');
+
   if (hasFounderPlan) {
     return {
       tier: 'pro',
