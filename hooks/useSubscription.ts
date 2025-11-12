@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react';
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise' | null;
 
@@ -30,20 +30,25 @@ export function useSubscription(): SubscriptionData {
   }
 
   // Use Clerk's built-in has() method to check for active subscription
-  // Check for all possible plan names
+  // Instead of checking individual plans, check for the "premium_access" feature
+  // This feature should be added to ALL paid plans in Clerk Dashboard
+  const hasPremiumAccess = has ? has({ feature: 'premium_access' }) : false;
+
+  // Fallback: Also check specific plan names for backwards compatibility
   const hasFounderPlan = has ? has({ plan: 'free_trial_founder_price' }) : false;
   const hasStandardPlan = has ? has({ plan: 'standard_coaching_membership' }) : false;
 
-  const hasAnyPlan = hasFounderPlan || hasStandardPlan;
+  const hasAccess = hasPremiumAccess || hasFounderPlan || hasStandardPlan;
 
   // Debug: Log what has() returns
   console.log('=== SUBSCRIPTION CHECK ===');
+  console.log('Has premium_access feature:', hasPremiumAccess);
   console.log('Has founder plan:', hasFounderPlan);
   console.log('Has standard plan:', hasStandardPlan);
-  console.log('Has any plan:', hasAnyPlan);
+  console.log('Final access granted:', hasAccess);
   console.log('==========================');
 
-  if (hasAnyPlan) {
+  if (hasAccess) {
     return {
       tier: 'pro',
       isActive: true,
