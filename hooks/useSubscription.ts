@@ -1,4 +1,4 @@
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise' | null;
 
