@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, PricingTable } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, PricingTable, useUser } from '@clerk/clerk-react';
 import { useSubscription } from './hooks/useSubscription';
 import Section from './components/Section';
 import PricingPage from './components/PricingPage';
@@ -98,6 +98,7 @@ const helpContent = {
 };
 
 const App: React.FC = () => {
+  const { user } = useUser();
   const subscription = useSubscription();
   const [appState, setAppState] = useState<AppState>(initialAppState);
   const [currentView, setCurrentView] = useState<'homescreen' | 'planner' | 'oneRepMax' | 'warmupGenerator' | 'velocityProfile' | 'techniqueScore' | 'workoutTimer' | 'pricing'>('homescreen');
@@ -209,6 +210,45 @@ const App: React.FC = () => {
       }
     }
   }, [subscription.isLoading, subscription.isActive, subscription.isPro, subscription.isEnterprise, currentView]);
+
+  // Poll for subscription status updates when user is on pricing page
+  // This handles the delay between Stripe payment and webhook processing
+  useEffect(() => {
+    let pollInterval: NodeJS.Timeout | null = null;
+
+    // Only poll if user is signed in but doesn't have active subscription yet
+    const shouldPoll = user && !subscription.isLoading && !subscription.isActive;
+
+    if (shouldPoll) {
+      // Poll every 3 seconds for up to 30 seconds
+      let pollCount = 0;
+      const maxPolls = 10;
+
+      pollInterval = setInterval(async () => {
+        pollCount++;
+
+        // Refresh user data from Clerk to check for subscription updates
+        try {
+          await user.reload();
+        } catch (error) {
+          console.error('Error reloading user data:', error);
+        }
+
+        // Stop polling after max attempts
+        if (pollCount >= maxPolls) {
+          if (pollInterval) {
+            clearInterval(pollInterval);
+          }
+        }
+      }, 3000);
+    }
+
+    return () => {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+      }
+    };
+  }, [user, subscription.isLoading, subscription.isActive]);
 
   const triggerImport = (accept: string, callback: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
     if (fileInputRef.current) {
@@ -842,9 +882,18 @@ const App: React.FC = () => {
             <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-4">
               Choose your plan below to unlock the complete powerlifting toolkit used by athletes and coaches worldwide.
             </p>
-            <p className="text-sm text-slate-400 max-w-xl mx-auto mb-8">
-              After completing your purchase, you'll be automatically redirected to the app.
-            </p>
+            <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-4 max-w-xl mx-auto mb-6">
+              <div className="flex items-center gap-3">
+                <div className="animate-pulse">
+                  <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <p className="text-sm text-blue-200">
+                  Just completed payment? Your subscription is being processed. You'll be redirected automatically in a few seconds.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Clerk Billing Pricing Table */}
