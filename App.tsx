@@ -105,7 +105,6 @@ const App: React.FC = () => {
   const [velocityProfileMode, setVelocityProfileMode] = useState<'generate' | 'test'>('generate');
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [canShare, setCanShare] = useState(false);
-  const [showSignUpPricing, setShowSignUpPricing] = useState(false);
   const [savedPlans, setSavedPlans] = useState<Record<string, AppState>>({});
   const [currentPlanName, setCurrentPlanName] = useState('');
   const [isDirty, setIsDirty] = useState(false);
@@ -204,8 +203,7 @@ const App: React.FC = () => {
   // Automatically redirect to home page after successful signup/subscription
   useEffect(() => {
     if (!subscription.isLoading && subscription.isActive && (subscription.isPro || subscription.isEnterprise)) {
-      // User has an active paid subscription, make sure they see the app
-      setShowSignUpPricing(false);
+      // User has an active paid subscription, redirect to homescreen
       if (currentView !== 'homescreen') {
         setCurrentView('homescreen');
       }
@@ -681,7 +679,7 @@ const App: React.FC = () => {
                       Sign In
                     </button>
                   </SignInButton>
-                  <SignUpButton mode="modal">
+                  <SignUpButton mode="modal" forceRedirectUrl="/">
                     <button className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
                       Sign Up
                     </button>
@@ -714,7 +712,7 @@ const App: React.FC = () => {
                         Sign In
                       </button>
                     </SignInButton>
-                    <SignUpButton mode="modal">
+                    <SignUpButton mode="modal" forceRedirectUrl="/">
                       <button className="px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
                         Sign Up
                       </button>
@@ -745,117 +743,79 @@ const App: React.FC = () => {
       {isSaveAsModalOpen && <SaveAsModal isOpen={isSaveAsModalOpen} onClose={() => setIsSaveAsModalOpen(false)} onSave={handleSaveAs} existingPlanNames={Object.keys(savedPlans)} />}
 
       <SignedOut>
-        {!showSignUpPricing ? (
-          /* Welcome page with Sign In / Sign Up */
-          <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12 text-center">
-              <div className="mb-8">
-                <div className="inline-block p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-6">
-                  <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-                  Welcome to Platform Coach
-                </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
-                  The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
-                </p>
-              </div>
-
-              <div className="space-y-4 mb-12">
-                <SignInButton mode="modal">
-                  <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
-                    Sign In
-                  </button>
-                </SignInButton>
-                <div className="text-slate-500 dark:text-slate-400">or</div>
-                <button
-                  onClick={() => setShowSignUpPricing(true)}
-                  className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg transition-all transform hover:scale-105"
-                >
-                  Sign Up
-                </button>
-              </div>
-
-              <div className="pt-8 border-t border-slate-200 dark:border-slate-700">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-slate-700 dark:text-slate-300">Competition Meet Planner</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-slate-700 dark:text-slate-300">Workout Timer</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-slate-700 dark:text-slate-300">1RM Calculator</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-slate-700 dark:text-slate-300">Warmup Generator</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-slate-700 dark:text-slate-300">Velocity Profile Generator</span>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-slate-700 dark:text-slate-300">Technique Score Calculator</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Show pricing table for new signups */
-          <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
-            <div className="text-center mb-8">
-              <div className="inline-block p-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mb-6">
+        {/* Welcome page with Sign In / Sign Up */}
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12 text-center">
+            <div className="mb-8">
+              <div className="inline-block p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-6">
                 <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Choose Your Plan
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                Welcome to Platform Coach
               </h2>
-              <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-8">
-                Select a plan to get started. You'll create your account as part of the checkout process.
+              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
+                The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
               </p>
             </div>
 
-            {/* Clerk Billing Pricing Table */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8">
-              <PricingTable />
+            <div className="space-y-4 mb-12">
+              <SignInButton mode="modal">
+                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
+                  Sign In
+                </button>
+              </SignInButton>
+              <div className="text-slate-500 dark:text-slate-400">or</div>
+              <SignUpButton mode="modal" forceRedirectUrl="/">
+                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
+                  Sign Up
+                </button>
+              </SignUpButton>
             </div>
 
-            <div className="text-center mt-6">
-              <button
-                onClick={() => setShowSignUpPricing(false)}
-                className="text-slate-300 hover:text-white transition-colors text-sm"
-              >
-                ← Back to welcome
-              </button>
-            </div>
-
-            <div className="text-center mt-4 text-slate-400 text-sm">
-              Already have an account? <SignInButton mode="modal"><span className="text-blue-400 hover:text-blue-300 cursor-pointer underline">Sign In</span></SignInButton>
+            <div className="pt-8 border-t border-slate-200 dark:border-slate-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Competition Meet Planner</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Workout Timer</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">1RM Calculator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Warmup Generator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Velocity Profile Generator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Technique Score Calculator</span>
+                </div>
+              </div>
             </div>
           </div>
-        )}
+        </div>
       </SignedOut>
 
       <SignedIn>
@@ -877,10 +837,13 @@ const App: React.FC = () => {
               </svg>
             </div>
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Subscribe to Access Platform Coach
+              One More Step
             </h2>
-            <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-8">
-              Choose your plan to unlock the complete powerlifting toolkit used by athletes and coaches worldwide.
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-4">
+              Choose your plan below to unlock the complete powerlifting toolkit used by athletes and coaches worldwide.
+            </p>
+            <p className="text-sm text-slate-400 max-w-xl mx-auto mb-8">
+              After completing your purchase, you'll be automatically redirected to the app.
             </p>
           </div>
 
