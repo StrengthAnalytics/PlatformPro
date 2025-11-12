@@ -40,32 +40,28 @@ export function useSubscription(): SubscriptionData {
     };
   }
 
-  // DEBUG: Log what Clerk is actually giving us
-  console.log('=== CLERK USER DATA ===');
-  console.log('Full publicMetadata:', user.publicMetadata);
-  console.log('Full privateMetadata:', user.unsafeMetadata);
-  console.log('User ID:', user.id);
+  // DEBUG: Let's see EVERYTHING Clerk gives us
+  console.log('=== FULL USER OBJECT ===');
+  console.log('User:', user);
+  console.log('User keys:', Object.keys(user));
+
+  // Check for different possible subscription properties
+  console.log('Checking for subscription properties:');
+  console.log('user.subscriptions:', (user as any).subscriptions);
+  console.log('user.subscription:', (user as any).subscription);
+  console.log('user.organizationMemberships:', user.organizationMemberships);
+  console.log('user.publicMetadata:', user.publicMetadata);
+  console.log('user.privateMetadata:', (user as any).privateMetadata);
+  console.log('user.unsafeMetadata:', user.unsafeMetadata);
   console.log('=======================');
 
-  // Clerk Billing stores subscription info in publicMetadata
-  // Check for subscription status
-  const subscriptionStatus = user.publicMetadata?.subscriptionStatus as string | undefined;
-  const subscriptionTier = user.publicMetadata?.subscriptionTier as string | undefined;
-
-  // Determine if subscription is active
-  const isActive = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
-
-  // Determine the tier (defaults to 'free' if no subscription)
-  const tier: SubscriptionTier = (subscriptionTier as SubscriptionTier) || 'free';
-
-  console.log('Parsed subscription:', { tier, isActive, subscriptionStatus, subscriptionTier });
-
+  // For now, return free tier since we can't find subscription data
   return {
-    tier,
-    isActive,
-    isPro: tier === 'pro' && isActive,
-    isEnterprise: tier === 'enterprise' && isActive,
-    isFree: tier === 'free' || !isActive,
+    tier: 'free',
+    isActive: false,
+    isPro: false,
+    isEnterprise: false,
+    isFree: true,
     isLoading: false,
   };
 }
