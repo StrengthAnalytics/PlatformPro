@@ -28,6 +28,10 @@ interface ClerkWebhookEvent {
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  console.log('=== WEBHOOK CALLED ===');
+  console.log('Method:', req.method);
+  console.log('Headers:', JSON.stringify(req.headers, null, 2));
+
   // Only accept POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -35,6 +39,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Get the webhook secret from environment variables
   const webhookSecret = process.env.CLERK_WEBHOOK_SECRET;
+
+  console.log('CLERK_WEBHOOK_SECRET exists:', !!webhookSecret);
+  console.log('CLERK_SECRET_KEY exists:', !!process.env.CLERK_SECRET_KEY);
 
   if (!webhookSecret) {
     console.error('CLERK_WEBHOOK_SECRET is not set');
@@ -119,8 +126,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error('Failed to update user metadata:', errorText);
-        return res.status(500).json({ error: 'Failed to update user metadata' });
+        console.error('=== CLERK API ERROR ===');
+        console.error('Status:', response.status);
+        console.error('Response:', errorText);
+        console.error('User ID:', userId);
+        console.error('API Key (first 10 chars):', clerkApiKey.substring(0, 10));
+        return res.status(500).json({
+          error: 'Failed to update user metadata',
+          clerkError: errorText,
+          status: response.status
+        });
       }
 
       console.log(`Successfully updated metadata for user ${userId}`);
