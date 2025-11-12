@@ -40,28 +40,29 @@ export function useSubscription(): SubscriptionData {
     };
   }
 
-  // DEBUG: Let's see EVERYTHING Clerk gives us
-  console.log('=== FULL USER OBJECT ===');
-  console.log('User:', user);
-  console.log('User keys:', Object.keys(user));
+  // DEBUG: Log the metadata
+  console.log('=== SUBSCRIPTION CHECK ===');
+  console.log('publicMetadata:', user.publicMetadata);
+  console.log('=========================');
 
-  // Check for different possible subscription properties
-  console.log('Checking for subscription properties:');
-  console.log('user.subscriptions:', (user as any).subscriptions);
-  console.log('user.subscription:', (user as any).subscription);
-  console.log('user.organizationMemberships:', user.organizationMemberships);
-  console.log('user.publicMetadata:', user.publicMetadata);
-  console.log('user.privateMetadata:', (user as any).privateMetadata);
-  console.log('user.unsafeMetadata:', user.unsafeMetadata);
-  console.log('=======================');
+  // Check publicMetadata for subscription info
+  const subscriptionStatus = user.publicMetadata?.subscriptionStatus as string | undefined;
+  const subscriptionTier = user.publicMetadata?.subscriptionTier as string | undefined;
 
-  // For now, return free tier since we can't find subscription data
+  // Determine if subscription is active
+  const isActive = subscriptionStatus === 'active' || subscriptionStatus === 'trialing';
+
+  // Determine the tier (defaults to 'free' if no subscription)
+  const tier: SubscriptionTier = (subscriptionTier as SubscriptionTier) || 'free';
+
+  console.log('Subscription result:', { tier, isActive, subscriptionStatus, subscriptionTier });
+
   return {
-    tier: 'free',
-    isActive: false,
-    isPro: false,
-    isEnterprise: false,
-    isFree: true,
+    tier,
+    isActive,
+    isPro: isActive && tier !== 'free',  // Any active paid subscription counts as "pro"
+    isEnterprise: tier === 'enterprise' && isActive,
+    isFree: tier === 'free' || !isActive,
     isLoading: false,
   };
 }
