@@ -80,12 +80,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Handle the webhook event
   const eventType = event.type;
-  const subscriptionData = event.data;
+  const eventData = event.data;
 
-  console.log(`Received webhook event: ${eventType}`);
+  console.log('=== WEBHOOK EVENT RECEIVED ===');
+  console.log('Event Type:', eventType);
+  console.log('Full Event Data:', JSON.stringify(eventData, null, 2));
+  console.log('=============================');
 
   // Handle subscription events
   if (eventType === 'subscription.created' || eventType === 'subscription.updated') {
+    const subscriptionData = eventData;
     const userId = subscriptionData.user_id;
     const status = subscriptionData.status; // 'active', 'trialing', 'canceled', etc.
     const planName = subscriptionData.plan?.name?.toLowerCase() || 'pro';
