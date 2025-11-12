@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react';
+import { useSubscription } from './hooks/useSubscription';
 import Section from './components/Section';
+import PricingPage from './components/PricingPage';
 import LiftSection from './components/LiftSection';
 import SaveLoadSection from './components/SaveLoadSection';
 import BrandingSection from './components/BrandingSection';
@@ -96,8 +98,9 @@ const helpContent = {
 };
 
 const App: React.FC = () => {
+  const subscription = useSubscription();
   const [appState, setAppState] = useState<AppState>(initialAppState);
-  const [currentView, setCurrentView] = useState<'homescreen' | 'planner' | 'oneRepMax' | 'warmupGenerator' | 'velocityProfile' | 'techniqueScore' | 'workoutTimer'>('homescreen');
+  const [currentView, setCurrentView] = useState<'homescreen' | 'planner' | 'oneRepMax' | 'warmupGenerator' | 'velocityProfile' | 'techniqueScore' | 'workoutTimer' | 'pricing'>('homescreen');
   const [viewMode, setViewMode] = useState<'pro' | 'lite'>('pro');
   const [velocityProfileMode, setVelocityProfileMode] = useState<'generate' | 'test'>('generate');
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -649,7 +652,7 @@ const App: React.FC = () => {
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
   const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
-  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', homescreen: 'PLATFORM COACH' };
+  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: 'PLATFORM COACH' };
 
   return (
     <div className="font-sans bg-gradient-to-br from-[#0066FF] to-[#0044AA] min-h-screen">
@@ -673,6 +676,22 @@ const App: React.FC = () => {
                   </SignUpButton>
                 </SignedOut>
                 <SignedIn>
+                  {subscription.isFree && !subscription.isLoading && (
+                    <button
+                      onClick={() => setCurrentView('pricing')}
+                      className="px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-md transition-colors shadow-lg"
+                    >
+                      Upgrade to Pro
+                    </button>
+                  )}
+                  {(subscription.isPro || subscription.isEnterprise) && (
+                    <button
+                      onClick={() => setCurrentView('pricing')}
+                      className="px-3 py-1.5 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                    >
+                      {subscription.tier?.toUpperCase()}
+                    </button>
+                  )}
                   <UserButton afterSignOutUrl="/" />
                 </SignedIn>
                 <SettingsMenu {...commonSettingsMenuProps} />
@@ -698,6 +717,22 @@ const App: React.FC = () => {
                     </SignUpButton>
                   </SignedOut>
                   <SignedIn>
+                    {subscription.isFree && !subscription.isLoading && currentView !== 'pricing' && (
+                      <button
+                        onClick={() => setCurrentView('pricing')}
+                        className="px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-md transition-colors shadow-lg"
+                      >
+                        Upgrade
+                      </button>
+                    )}
+                    {(subscription.isPro || subscription.isEnterprise) && (
+                      <button
+                        onClick={() => setCurrentView('pricing')}
+                        className="px-2 py-1 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                      >
+                        {subscription.tier?.toUpperCase()}
+                      </button>
+                    )}
                     <UserButton afterSignOutUrl="/" />
                   </SignedIn>
                   { (currentView === 'planner' || currentView === 'velocityProfile') && <SettingsMenu {...commonSettingsMenuProps} /> }
@@ -811,7 +846,8 @@ const App: React.FC = () => {
         onTriggerImport={triggerImport}
         /></div>}
       {currentView === 'workoutTimer' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WorkoutTimer /></div>}
-      
+      {currentView === 'pricing' && <PricingPage onClose={() => setCurrentView('homescreen')} />}
+
       {currentView === 'planner' && (
         <div className="flex flex-col xl:flex-row gap-8 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24 xl:pb-8">
           {viewMode === 'pro' ? (
