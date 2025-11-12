@@ -65,7 +65,12 @@ if (!PUBLISHABLE_KEY) {
 } else {
   root.render(
     <React.StrictMode>
-      <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <ClerkProvider
+        publishableKey={PUBLISHABLE_KEY}
+        afterSignOutUrl="/"
+        signInFallbackRedirectUrl="/"
+        signUpFallbackRedirectUrl="/"
+      >
         <App />
       </ClerkProvider>
     </React.StrictMode>
