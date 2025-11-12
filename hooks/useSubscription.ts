@@ -40,6 +40,13 @@ export function useSubscription(): SubscriptionData {
     };
   }
 
+  // DEBUG: Log what Clerk is actually giving us
+  console.log('=== CLERK USER DATA ===');
+  console.log('Full publicMetadata:', user.publicMetadata);
+  console.log('Full privateMetadata:', user.unsafeMetadata);
+  console.log('User ID:', user.id);
+  console.log('=======================');
+
   // Clerk Billing stores subscription info in publicMetadata
   // Check for subscription status
   const subscriptionStatus = user.publicMetadata?.subscriptionStatus as string | undefined;
@@ -50,6 +57,8 @@ export function useSubscription(): SubscriptionData {
 
   // Determine the tier (defaults to 'free' if no subscription)
   const tier: SubscriptionTier = (subscriptionTier as SubscriptionTier) || 'free';
+
+  console.log('Parsed subscription:', { tier, isActive, subscriptionStatus, subscriptionTier });
 
   return {
     tier,
