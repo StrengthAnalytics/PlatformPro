@@ -850,7 +850,7 @@ const App: React.FC = () => {
           </div>
 
           <div className="text-center mt-6 text-slate-300 text-sm">
-            Questions? Contact support at your-email@example.com
+            Questions? Contact support at info@strengthanalytics.co.uk
           </div>
         </div>
       ) : (
