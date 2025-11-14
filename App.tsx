@@ -200,16 +200,6 @@ const App: React.FC = () => {
     if (viewMode === 'lite') setVelocityProfileMode('test');
   }, [viewMode]);
 
-  // Automatically redirect to home page after successful signup/subscription
-  useEffect(() => {
-    if (!subscription.isLoading && subscription.isActive && (subscription.isPro || subscription.isEnterprise)) {
-      // User has an active paid subscription, redirect to homescreen
-      if (currentView !== 'homescreen') {
-        setCurrentView('homescreen');
-      }
-    }
-  }, [subscription.isLoading, subscription.isActive, subscription.isPro, subscription.isEnterprise, currentView]);
-
   const triggerImport = (accept: string, callback: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
     if (fileInputRef.current) {
         fileChangeCallbackRef.current = callback;
