@@ -40,14 +40,6 @@ export function useSubscription(): SubscriptionData {
 
   const hasAccess = hasPremiumAccess || hasFounderPlan || hasStandardPlan;
 
-  // Debug: Log what has() returns
-  console.log('=== SUBSCRIPTION CHECK ===');
-  console.log('Has premium_access feature:', hasPremiumAccess);
-  console.log('Has founder plan:', hasFounderPlan);
-  console.log('Has standard plan:', hasStandardPlan);
-  console.log('Final access granted:', hasAccess);
-  console.log('==========================');
-
   if (hasAccess) {
     return {
       tier: 'pro',

@@ -9,7 +9,8 @@ This application requires the following environment variables to be configured:
 #### `VITE_CLERK_PUBLISHABLE_KEY`
 Your Clerk publishable key for authentication.
 
-**Value:** `pk_test_c3RhYmxlLXBlYWNvY2stOTAuY2xlcmsuYWNjb3VudHMuZGV2JA`
+- **Development:** `pk_test_...` (from Clerk Dashboard)
+- **Production:** `pk_live_...` (from Clerk Dashboard)
 
 ---
 
@@ -36,10 +37,10 @@ Your Clerk publishable key for authentication.
 
 ## Local Development
 
-For local development, the environment variable is stored in `.env.local`:
+For local development, create a `.env.local` file in the project root:
 
 ```bash
-VITE_CLERK_PUBLISHABLE_KEY=pk_test_c3RhYmxlLXBlYWNvY2stOTAuY2xlcmsuYWNjb3VudHMuZGV2JA
+VITE_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key_here
 ```
 
 **Note:** `.env.local` is gitignored and should never be committed to version control.
@@ -69,3 +70,17 @@ In your [Clerk Dashboard](https://dashboard.clerk.com):
 2. Add your Vercel deployment URL to the allowed origins
 3. Configure sign-in/sign-up options as needed
 4. Set up any additional authentication providers (Google, GitHub, etc.)
+
+### Clerk Billing Setup
+
+For subscription functionality to work:
+
+1. **Enable Billing:** Go to **Monetization** → **Billing Settings** → Enable billing
+2. **Connect Stripe:**
+   - Development: Use "Clerk development gateway" for testing
+   - Production: Connect your production Stripe account
+3. **Create Plans:** Go to **Plans** → Create your subscription plans
+4. **Add Feature:** Create a feature called `premium_access` (use in code: `premium_access`)
+5. **Add Feature to Plans:** Add the `premium_access` feature to all paid plans
+
+This ensures the `has({ feature: 'premium_access' })` method works correctly.
