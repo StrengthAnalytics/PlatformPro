@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, PricingTable } from '@clerk/clerk-react';
+import { useSubscription } from './hooks/useSubscription';
 import Section from './components/Section';
+import PricingPage from './components/PricingPage';
 import LiftSection from './components/LiftSection';
 import SaveLoadSection from './components/SaveLoadSection';
 import BrandingSection from './components/BrandingSection';
@@ -95,8 +98,9 @@ const helpContent = {
 };
 
 const App: React.FC = () => {
+  const subscription = useSubscription();
   const [appState, setAppState] = useState<AppState>(initialAppState);
-  const [currentView, setCurrentView] = useState<'homescreen' | 'planner' | 'oneRepMax' | 'warmupGenerator' | 'velocityProfile' | 'techniqueScore' | 'workoutTimer'>('homescreen');
+  const [currentView, setCurrentView] = useState<'homescreen' | 'planner' | 'oneRepMax' | 'warmupGenerator' | 'velocityProfile' | 'techniqueScore' | 'workoutTimer' | 'pricing'>('homescreen');
   const [viewMode, setViewMode] = useState<'pro' | 'lite'>('pro');
   const [velocityProfileMode, setVelocityProfileMode] = useState<'generate' | 'test'>('generate');
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -195,6 +199,16 @@ const App: React.FC = () => {
   useEffect(() => {
     if (viewMode === 'lite') setVelocityProfileMode('test');
   }, [viewMode]);
+
+  // Automatically redirect to home page after successful signup/subscription
+  useEffect(() => {
+    if (!subscription.isLoading && subscription.isActive && (subscription.isPro || subscription.isEnterprise)) {
+      // User has an active paid subscription, redirect to homescreen
+      if (currentView !== 'homescreen') {
+        setCurrentView('homescreen');
+      }
+    }
+  }, [subscription.isLoading, subscription.isActive, subscription.isPro, subscription.isEnterprise, currentView]);
 
   const triggerImport = (accept: string, callback: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
     if (fileInputRef.current) {
@@ -648,7 +662,7 @@ const App: React.FC = () => {
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
   const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
-  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', homescreen: 'PLATFORM COACH' };
+  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: 'PLATFORM COACH' };
 
   return (
     <div className="font-sans bg-gradient-to-br from-[#0066FF] to-[#0044AA] min-h-screen">
@@ -658,7 +672,30 @@ const App: React.FC = () => {
           {currentView === 'homescreen' ? (
             <div className="relative flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-center">{headerTitles.homescreen}</h1>
-              <div className="sm:absolute sm:right-0">
+              <div className="sm:absolute sm:right-0 flex items-center gap-3">
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                  <SignUpButton mode="modal" forceRedirectUrl="/">
+                    <button className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                      Sign Up
+                    </button>
+                  </SignUpButton>
+                </SignedOut>
+                <SignedIn>
+                  {(subscription.isPro || subscription.isEnterprise) && (
+                    <button
+                      onClick={() => setCurrentView('pricing')}
+                      className="px-3 py-1.5 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                    >
+                      {subscription.tier?.toUpperCase()}
+                    </button>
+                  )}
+                  <UserButton afterSignOutUrl="/" />
+                </SignedIn>
                 <SettingsMenu {...commonSettingsMenuProps} />
               </div>
             </div>
@@ -668,7 +705,32 @@ const App: React.FC = () => {
               <div className="grid grid-cols-3 items-center">
                 <div className="flex justify-start"><button onClick={() => setCurrentView('homescreen')} className="text-slate-400 hover:text-white transition-colors p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50" aria-label="Back to toolkit home"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></button></div>
                 <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={setViewMode} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={(newMode) => { if (viewMode === 'lite' && newMode === 'generate') { alert("The 'Generate Profile' feature is for coaches in Pro mode. Athletes should use the 'Complete Test' feature."); return; } setVelocityProfileMode(newMode as 'generate' | 'test'); }} disabled={viewMode === 'lite'} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
-                <div className="flex justify-end">{ (currentView === 'planner' || currentView === 'velocityProfile') && <SettingsMenu {...commonSettingsMenuProps} /> }</div>
+                <div className="flex justify-end items-center gap-3">
+                  <SignedOut>
+                    <SignInButton mode="modal">
+                      <button className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                        Sign In
+                      </button>
+                    </SignInButton>
+                    <SignUpButton mode="modal" forceRedirectUrl="/">
+                      <button className="px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                        Sign Up
+                      </button>
+                    </SignUpButton>
+                  </SignedOut>
+                  <SignedIn>
+                    {(subscription.isPro || subscription.isEnterprise) && (
+                      <button
+                        onClick={() => setCurrentView('pricing')}
+                        className="px-2 py-1 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                      >
+                        {subscription.tier?.toUpperCase()}
+                      </button>
+                    )}
+                    <UserButton afterSignOutUrl="/" />
+                  </SignedIn>
+                  { (currentView === 'planner' || currentView === 'velocityProfile') && <SettingsMenu {...commonSettingsMenuProps} /> }
+                </div>
               </div>
             </div>
           )}
@@ -680,6 +742,120 @@ const App: React.FC = () => {
       <ToolsModal isOpen={isToolsModalOpen} onClose={() => setIsToolsModalOpen(false)} />
       {isSaveAsModalOpen && <SaveAsModal isOpen={isSaveAsModalOpen} onClose={() => setIsSaveAsModalOpen(false)} onSave={handleSaveAs} existingPlanNames={Object.keys(savedPlans)} />}
 
+      <SignedOut>
+        {/* Welcome page with Sign In / Sign Up */}
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12 text-center">
+            <div className="mb-8">
+              <div className="inline-block p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-6">
+                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                Welcome to Platform Coach
+              </h2>
+              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
+                The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
+              </p>
+            </div>
+
+            <div className="space-y-4 mb-12">
+              <SignInButton mode="modal">
+                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
+                  Sign In
+                </button>
+              </SignInButton>
+              <div className="text-slate-500 dark:text-slate-400">or</div>
+              <SignUpButton mode="modal" forceRedirectUrl="/">
+                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
+                  Sign Up
+                </button>
+              </SignUpButton>
+            </div>
+
+            <div className="pt-8 border-t border-slate-200 dark:border-slate-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Competition Meet Planner</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Workout Timer</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">1RM Calculator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Warmup Generator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Velocity Profile Generator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Technique Score Calculator</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </SignedOut>
+
+      <SignedIn>
+      {/* Show loading state while checking subscription */}
+      {subscription.isLoading ? (
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16 text-center">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-12">
+            <div className="inline-block animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-6"></div>
+            <p className="text-lg text-slate-600 dark:text-slate-300">Loading your account...</p>
+          </div>
+        </div>
+      ) : !subscription.isActive || subscription.isFree ? (
+        /* User is signed in but doesn't have an active paid subscription - show pricing */
+        <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
+          <div className="text-center mb-8">
+            <div className="inline-block p-4 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full mb-6">
+              <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              Choose Your Plan
+            </h2>
+            <p className="text-lg text-slate-300 max-w-2xl mx-auto mb-8">
+              Select the plan that works for you and get instant access to the complete powerlifting toolkit used by athletes and coaches worldwide.
+            </p>
+          </div>
+
+          {/* Clerk Billing Pricing Table */}
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-6 sm:p-8">
+            <PricingTable />
+          </div>
+
+          <div className="text-center mt-6 text-slate-300 text-sm">
+            Questions? Contact support at info@strengthanalytics.co.uk
+          </div>
+        </div>
+      ) : (
+        /* User has active paid subscription - show full app */
+        <>
       {currentView === 'homescreen' && <Homescreen onNavigateToPlanner={() => { setCurrentView('planner'); setViewMode('pro'); }} onNavigateToOneRepMax={() => setCurrentView('oneRepMax')} onNavigateToWarmupGenerator={() => setCurrentView('warmupGenerator')} onNavigateToVelocityProfile={() => setCurrentView('velocityProfile')} onNavigateToTechniqueScore={() => setCurrentView('techniqueScore')} onNavigateToWorkoutTimer={() => setCurrentView('workoutTimer')} />}
       {currentView === 'oneRepMax' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><OneRepMaxCalculator branding={appState.branding} /></div>}
       {currentView === 'warmupGenerator' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WarmupGenerator /></div>}
@@ -697,7 +873,8 @@ const App: React.FC = () => {
         onTriggerImport={triggerImport}
         /></div>}
       {currentView === 'workoutTimer' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WorkoutTimer /></div>}
-      
+      {currentView === 'pricing' && <PricingPage onClose={() => setCurrentView('homescreen')} />}
+
       {currentView === 'planner' && (
         <div className="flex flex-col xl:flex-row gap-8 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 pb-24 xl:pb-8">
           {viewMode === 'pro' ? (
@@ -801,6 +978,9 @@ const App: React.FC = () => {
       )}
 
       {isResetModalOpen && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="bg-white dark:bg-slate-700 p-8 rounded-lg shadow-2xl max-w-sm w-full"><h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Confirm Clear Form</h3><p className="text-slate-600 dark:text-slate-300 mb-6">Are you sure you want to clear the form? This will remove all details and equipment settings, but will not delete your saved plans.</p><div className="flex justify-end gap-4"><button onClick={() => setIsResetModalOpen(false)} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-md transition-colors dark:bg-slate-600 dark:hover:bg-slate-500 dark:text-slate-100">Cancel</button><button onClick={handleFullReset} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition-colors">Yes, Clear Form</button></div></div></div>}
+        </>
+      )}
+      </SignedIn>
     </div>
   );
 };
