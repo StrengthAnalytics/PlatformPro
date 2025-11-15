@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { LiftType, GameDayLiftState, AttemptStatus, CompetitionDetails, ScoringFormula } from '../types';
 import IconButton from './IconButton';
 import { getPlateBreakdown, getLbsPlateBreakdown, calculateScore } from '../utils/calculator';
-import { IS_FREE_VERSION } from '../config';
 
 interface GameDayModeProps {
   gameDayState: Record<LiftType, GameDayLiftState>;
@@ -170,13 +169,8 @@ const GameDayMode: React.FC<GameDayModeProps> = ({ gameDayState, onGameDayUpdate
       }
   };
 
-  // Use blue gradient background for free version to stand out against orange app background
-  const backgroundClass = IS_FREE_VERSION
-    ? "fixed inset-0 bg-gradient-to-br from-[#0066FF] to-[#0044AA] text-white font-sans flex flex-col z-50"
-    : "fixed inset-0 bg-slate-900 text-white font-sans flex flex-col z-50";
-
   return (
-    <div className={backgroundClass}>
+    <div className="fixed inset-0 bg-slate-900 text-white font-sans flex flex-col z-50">
       
       {editingAttempt && (
         <EditAttemptModal
