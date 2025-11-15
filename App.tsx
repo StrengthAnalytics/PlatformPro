@@ -673,29 +673,33 @@ const App: React.FC = () => {
             <div className="relative flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-center">{headerTitles.homescreen}</h1>
               <div className="sm:absolute sm:right-0 flex items-center gap-3">
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
-                      Sign In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal" forceRedirectUrl="/">
-                    <button className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
-                      Sign Up
-                    </button>
-                  </SignUpButton>
-                </SignedOut>
-                <SignedIn>
-                  {(subscription.isPro || subscription.isEnterprise) && (
-                    <button
-                      onClick={() => setCurrentView('pricing')}
-                      className="px-3 py-1.5 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
-                    >
-                      {subscription.tier?.toUpperCase()}
-                    </button>
-                  )}
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
+                {IS_PAID_VERSION && (
+                  <>
+                    <SignedOut>
+                      <SignInButton mode="modal">
+                        <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                          Sign In
+                        </button>
+                      </SignInButton>
+                      <SignUpButton mode="modal" forceRedirectUrl="/">
+                        <button className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                          Sign Up
+                        </button>
+                      </SignUpButton>
+                    </SignedOut>
+                    <SignedIn>
+                      {(subscription.isPro || subscription.isEnterprise) && (
+                        <button
+                          onClick={() => setCurrentView('pricing')}
+                          className="px-3 py-1.5 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                        >
+                          {subscription.tier?.toUpperCase()}
+                        </button>
+                      )}
+                      <UserButton afterSignOutUrl="/" />
+                    </SignedIn>
+                  </>
+                )}
                 <SettingsMenu {...commonSettingsMenuProps} />
               </div>
             </div>
@@ -706,29 +710,33 @@ const App: React.FC = () => {
                 <div className="flex justify-start"><button onClick={() => setCurrentView('homescreen')} className="text-slate-400 hover:text-white transition-colors p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50" aria-label="Back to toolkit home"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></button></div>
                 <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={setViewMode} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={(newMode) => { if (viewMode === 'lite' && newMode === 'generate') { alert("The 'Generate Profile' feature is for coaches in Pro mode. Athletes should use the 'Complete Test' feature."); return; } setVelocityProfileMode(newMode as 'generate' | 'test'); }} disabled={viewMode === 'lite'} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
                 <div className="flex justify-end items-center gap-3">
-                  <SignedOut>
-                    <SignInButton mode="modal">
-                      <button className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
-                        Sign In
-                      </button>
-                    </SignInButton>
-                    <SignUpButton mode="modal" forceRedirectUrl="/">
-                      <button className="px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
-                        Sign Up
-                      </button>
-                    </SignUpButton>
-                  </SignedOut>
-                  <SignedIn>
-                    {(subscription.isPro || subscription.isEnterprise) && (
-                      <button
-                        onClick={() => setCurrentView('pricing')}
-                        className="px-2 py-1 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
-                      >
-                        {subscription.tier?.toUpperCase()}
-                      </button>
-                    )}
-                    <UserButton afterSignOutUrl="/" />
-                  </SignedIn>
+                  {IS_PAID_VERSION && (
+                    <>
+                      <SignedOut>
+                        <SignInButton mode="modal">
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                            Sign In
+                          </button>
+                        </SignInButton>
+                        <SignUpButton mode="modal" forceRedirectUrl="/">
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                            Sign Up
+                          </button>
+                        </SignUpButton>
+                      </SignedOut>
+                      <SignedIn>
+                        {(subscription.isPro || subscription.isEnterprise) && (
+                          <button
+                            onClick={() => setCurrentView('pricing')}
+                            className="px-2 py-1 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                          >
+                            {subscription.tier?.toUpperCase()}
+                          </button>
+                        )}
+                        <UserButton afterSignOutUrl="/" />
+                      </SignedIn>
+                    </>
+                  )}
                   { (currentView === 'planner' || currentView === 'velocityProfile') && <SettingsMenu {...commonSettingsMenuProps} /> }
                 </div>
               </div>
