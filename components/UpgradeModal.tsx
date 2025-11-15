@@ -1,5 +1,5 @@
 import React from 'react';
-import { UPGRADE_URL, BRANDING } from '../config';
+import { UPGRADE_URL } from '../config';
 
 interface UpgradeModalProps {
   isOpen: boolean;
