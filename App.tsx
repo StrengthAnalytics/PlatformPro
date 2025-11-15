@@ -27,6 +27,7 @@ import TechniqueScoreCalculator from './components/TechniqueScoreCalculator';
 import WorkoutTimer from './components/WorkoutTimer';
 import ModeToggle from './components/ModeToggle';
 import InfoIcon from './components/InfoIcon';
+import UpgradeModal from './components/UpgradeModal';
 import { calculateAttempts, generateWarmups, calculateScore } from './utils/calculator';
 import { exportToCSV, exportToPDF, exportToMobilePDF, savePdf, sharePdf } from './utils/exportHandler';
 import { IPF_WEIGHT_CLASSES } from './constants';
@@ -121,6 +122,8 @@ const App: React.FC = () => {
   const [planAttemptsInLbs, setPlanAttemptsInLbs] = useState(false);
   const [isCoachingMode, setIsCoachingMode] = useState(false);
   const [autoGenerateWarmups, setAutoGenerateWarmups] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeModalFeature, setUpgradeModalFeature] = useState<{name: string; description?: string}>({name: ''});
   const isMobile = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileChangeCallbackRef = useRef<((e: React.ChangeEvent<HTMLInputElement>) => void) | null>(null);
@@ -257,6 +260,11 @@ const App: React.FC = () => {
   
   const showPopover = (title: string, content: React.ReactNode) => setPopoverState({ isOpen: true, title, content });
   const hidePopover = () => setPopoverState({ isOpen: false, title: '', content: null });
+
+  const showUpgradeModal = (featureName: string, featureDescription?: string) => {
+    setUpgradeModalFeature({ name: featureName, description: featureDescription });
+    setUpgradeModalOpen(true);
+  };
 
   const handleSelectAndLoadPlan = (name: string) => {
     if (name === '') {
@@ -662,7 +670,7 @@ const App: React.FC = () => {
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
   const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
-  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: 'PLATFORM COACH' };
+  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: IS_FREE_VERSION ? 'PLATFORM LIFTER' : 'PLATFORM COACH' };
 
   return (
     <div className={`font-sans ${BRANDING.backgroundGradient} min-h-screen`}>
@@ -996,14 +1004,19 @@ const App: React.FC = () => {
 
       {IS_FREE_VERSION && (
         <>
-          {/* Free version: Direct access to all features without authentication */}
-          {currentView === 'homescreen' && <Homescreen onNavigateToPlanner={() => { setCurrentView('planner'); setViewMode('lite'); }} onNavigateToOneRepMax={() => setCurrentView('oneRepMax')} onNavigateToWarmupGenerator={() => setCurrentView('warmupGenerator')} onNavigateToVelocityProfile={() => setCurrentView('velocityProfile')} onNavigateToTechniqueScore={() => setCurrentView('techniqueScore')} onNavigateToWorkoutTimer={() => setCurrentView('workoutTimer')} />}
-          {currentView === 'oneRepMax' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><OneRepMaxCalculator branding={appState.branding} /></div>}
+          {/* Free version: Direct access to free features, upgrade modals for pro features */}
+          {currentView === 'homescreen' && <Homescreen
+            onNavigateToPlanner={() => { setCurrentView('planner'); setViewMode('lite'); }}
+            onNavigateToOneRepMax={() => showUpgradeModal('1RM Calculator', 'Calculate your one-rep max with multiple formulas, track training load, and analyze your strength levels.')}
+            onNavigateToWarmupGenerator={() => setCurrentView('warmupGenerator')}
+            onNavigateToVelocityProfile={() => { setCurrentView('velocityProfile'); setVelocityProfileMode('test'); }}
+            onNavigateToTechniqueScore={() => showUpgradeModal('Technique Score Calculator', 'Analyze your lifting technique with velocity-based metrics and get instant feedback on bar path efficiency.')}
+            onNavigateToWorkoutTimer={() => setCurrentView('workoutTimer')}
+          />}
           {currentView === 'warmupGenerator' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WarmupGenerator /></div>}
-          {currentView === 'techniqueScore' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><TechniqueScoreCalculator branding={appState.branding} /></div>}
           {currentView === 'velocityProfile' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><VelocityProfileGenerator
             branding={appState.branding}
-            mode={velocityProfileMode}
+            mode="test"
             onHelpClick={(mode) => {
                 if (mode === 'generate') {
                     showPopover(helpContent.velocityProfileGenerate.title, helpContent.velocityProfileGenerate.content);
@@ -1025,13 +1038,20 @@ const App: React.FC = () => {
                 onAttemptChange={handleAttemptChange}
                 onWarmupChange={handleWarmupChange}
                 onResetPlan={handleResetLitePlan}
-                onLaunchGameDay={() => setIsGameDayModeActive(true)}
+                onLaunchGameDay={() => showUpgradeModal('Game Day Mode', 'Streamlined interface designed for competition day with larger buttons, simplified controls, and real-time attempt tracking.')}
                 onSaveLitePDF={handleSaveLitePdf}
                 onImportPlanClick={handlePlannerImportClick}
                 onHelpClick={() => showPopover(helpContent.liteMode.title, helpContent.liteMode.content)}
               />
             </div>
           )}
+
+          <UpgradeModal
+            isOpen={upgradeModalOpen}
+            onClose={() => setUpgradeModalOpen(false)}
+            featureName={upgradeModalFeature.name}
+            featureDescription={upgradeModalFeature.description}
+          />
         </>
       )}
     </div>
