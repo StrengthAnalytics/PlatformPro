@@ -210,8 +210,11 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (viewMode === 'lite') setVelocityProfileMode('test');
-  }, [viewMode]);
+    // Only enforce velocity profile mode restriction in paid version when switching planner modes
+    if (IS_PAID_VERSION && currentView === 'planner' && viewMode === 'lite') {
+      setVelocityProfileMode('test');
+    }
+  }, [viewMode, currentView]);
 
   const triggerImport = (accept: string, callback: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
     if (fileInputRef.current) {
@@ -264,6 +267,26 @@ const App: React.FC = () => {
   const showUpgradeModal = (featureName: string, featureDescription?: string) => {
     setUpgradeModalFeature({ name: featureName, description: featureDescription });
     setUpgradeModalOpen(true);
+  };
+
+  const handleViewModeToggle = (newMode: 'pro' | 'lite') => {
+    if (IS_FREE_VERSION && newMode === 'pro') {
+      showUpgradeModal('Pro Planner', 'Access the full competition planner with detailed equipment settings, personal bests tracking, and unlimited saves & exports.');
+      return;
+    }
+    setViewMode(newMode);
+  };
+
+  const handleVelocityModeToggle = (newMode: string) => {
+    if (IS_FREE_VERSION && newMode === 'generate') {
+      showUpgradeModal('Generate Velocity Profile', 'Create personalized velocity-based training profiles based on your test results. Perfect for coaches planning VBT programs.');
+      return;
+    }
+    if (viewMode === 'lite' && newMode === 'generate') {
+      alert("The 'Generate Profile' feature is for coaches in Pro mode. Athletes should use the 'Complete Test' feature.");
+      return;
+    }
+    setVelocityProfileMode(newMode as 'generate' | 'test');
   };
 
   const handleSelectAndLoadPlan = (name: string) => {
@@ -716,7 +739,7 @@ const App: React.FC = () => {
               <div className="text-center"><h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{headerTitles[currentView]}</h1></div>
               <div className="grid grid-cols-3 items-center">
                 <div className="flex justify-start"><button onClick={() => setCurrentView('homescreen')} className="text-slate-400 hover:text-white transition-colors p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50" aria-label="Back to toolkit home"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></button></div>
-                <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={setViewMode} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={(newMode) => { if (viewMode === 'lite' && newMode === 'generate') { alert("The 'Generate Profile' feature is for coaches in Pro mode. Athletes should use the 'Complete Test' feature."); return; } setVelocityProfileMode(newMode as 'generate' | 'test'); }} disabled={viewMode === 'lite'} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
+                <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={handleViewModeToggle} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={handleVelocityModeToggle} disabled={IS_PAID_VERSION && viewMode === 'lite'} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
                 <div className="flex justify-end items-center gap-3">
                   {IS_PAID_VERSION && (
                     <>

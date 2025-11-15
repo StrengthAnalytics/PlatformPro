@@ -38,7 +38,7 @@ export const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
  * URL to redirect users to when they want to upgrade from free to paid
  * Should point to the pricing page of Platform Coach
  */
-export const UPGRADE_URL = import.meta.env.VITE_UPGRADE_URL || 'https://platformcoach.com/pricing';
+export const UPGRADE_URL = import.meta.env.VITE_UPGRADE_URL || 'https://platformcoach.app';
 
 /**
  * Branding configuration based on app mode
