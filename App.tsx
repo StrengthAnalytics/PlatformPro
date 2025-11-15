@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, PricingTable } from '@clerk/clerk-react';
 import { useSubscription } from './hooks/useSubscription';
+import { BRANDING, IS_FREE_VERSION, IS_PAID_VERSION } from './config';
 import Section from './components/Section';
 import PricingPage from './components/PricingPage';
 import LiftSection from './components/LiftSection';
@@ -195,6 +196,15 @@ const App: React.FC = () => {
       }
       localStorage.setItem('plp_theme', theme);
   }, [theme]);
+
+  // Set dynamic branding based on APP_MODE (free vs paid version)
+  useEffect(() => {
+    document.title = BRANDING.appTitle;
+    const themeColorMeta = document.getElementById('theme-color-meta') as HTMLMetaElement;
+    if (themeColorMeta) {
+      themeColorMeta.content = BRANDING.themeColor;
+    }
+  }, []);
 
   useEffect(() => {
     if (viewMode === 'lite') setVelocityProfileMode('test');
@@ -655,7 +665,7 @@ const App: React.FC = () => {
   const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: 'PLATFORM COACH' };
 
   return (
-    <div className="font-sans bg-gradient-to-br from-[#0066FF] to-[#0044AA] min-h-screen">
+    <div className={`font-sans ${BRANDING.backgroundGradient} min-h-screen`}>
       <input type="file" ref={fileInputRef} onChange={onFileInputChange} className="hidden" aria-hidden="true" />
       <header className="bg-slate-900 text-white p-6 shadow-xl">
         <div className="max-w-7xl mx-auto">
@@ -732,6 +742,7 @@ const App: React.FC = () => {
       <ToolsModal isOpen={isToolsModalOpen} onClose={() => setIsToolsModalOpen(false)} />
       {isSaveAsModalOpen && <SaveAsModal isOpen={isSaveAsModalOpen} onClose={() => setIsSaveAsModalOpen(false)} onSave={handleSaveAs} existingPlanNames={Object.keys(savedPlans)} />}
 
+      {IS_PAID_VERSION && (
       <SignedOut>
         {/* Welcome page with Sign In / Sign Up */}
         <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
@@ -807,7 +818,9 @@ const App: React.FC = () => {
           </div>
         </div>
       </SignedOut>
+      )}
 
+      {IS_PAID_VERSION && (
       <SignedIn>
       {/* Show loading state while checking subscription */}
       {subscription.isLoading ? (
@@ -971,6 +984,173 @@ const App: React.FC = () => {
         </>
       )}
       </SignedIn>
+      )}
+
+      {IS_FREE_VERSION && (
+        <>
+          {/* Free version: Direct access to all features without authentication */}
+          {currentView === 'homescreen' && <Homescreen onNavigateToPlanner={() => { setCurrentView('planner'); setViewMode('pro'); }} onNavigateToOneRepMax={() => setCurrentView('oneRepMax')} onNavigateToWarmupGenerator={() => setCurrentView('warmupGenerator')} onNavigateToVelocityProfile={() => setCurrentView('velocityProfile')} onNavigateToTechniqueScore={() => setCurrentView('techniqueScore')} onNavigateToWorkoutTimer={() => setCurrentView('workoutTimer')} />}
+          {currentView === 'oneRepMax' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><OneRepMaxCalculator branding={appState.branding} /></div>}
+          {currentView === 'warmupGenerator' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WarmupGenerator /></div>}
+          {currentView === 'techniqueScore' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><TechniqueScoreCalculator branding={appState.branding} /></div>}
+          {currentView === 'velocityProfile' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><VelocityProfileGenerator
+            branding={appState.branding}
+            mode={velocityProfileMode}
+            onHelpClick={(mode) => {
+                if (mode === 'generate') {
+                    showPopover(helpContent.velocityProfileGenerate.title, helpContent.velocityProfileGenerate.content);
+                } else {
+                    showPopover(helpContent.velocityProfileTest.title, helpContent.velocityProfileTest.content);
+                }
+            }}
+          /></div>}
+          {currentView === 'workoutTimer' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WorkoutTimer /></div>}
+          {currentView === 'pricing' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><PricingPage /></div>}
+
+          {currentView === 'planner' && (
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 flex gap-8">
+              {viewMode === 'pro' ? (
+                <>
+                  <main className="flex-1 space-y-4">
+                    <Section title="Details"
+                      onHelpClick={() => showPopover(helpContent.details.title, helpContent.details.content)}
+                      onResetClick={() => setIsResetModalOpen(true)}
+                    >
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {[...detailFields.slice(0, 2)].map(field => (
+                          <div key={field.key} className="flex flex-col">
+                            <div className="flex items-center gap-2 mb-2">
+                              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">{field.label}</label>
+                              {helpContent[field.key] && <InfoIcon onClick={() => showPopover(helpContent[field.key].title, helpContent[field.key].content)} />}
+                            </div>
+                            {field.render(details, handleDetailChange)}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {detailFields.slice(2).map(field => {
+                          return (
+                            <div key={field.key} className="flex flex-col">
+                              <div className="flex items-center gap-2 mb-2">
+                                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">{field.label}</label>
+                                {helpContent[field.key] && <InfoIcon onClick={() => showPopover(helpContent[field.key].title, helpContent[field.key].content)} />}
+                              </div>
+                              {field.render(details, handleDetailChange)}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </Section>
+
+                    <CollapsibleSection title="Equipment Settings" initiallyOpen={false} onHelpClick={() => showPopover(helpContent.equipment.title, helpContent.equipment.content)}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        {equipmentFields.map(field => (
+                          <div key={field.key} className="flex flex-col">
+                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-2">{field.label}</label>
+                            {field.render(equipment, handleEquipmentChange)}
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleSection>
+
+                    <SaveLoadSection
+                      onSave={handleQuickSave}
+                      onSaveAs={() => setIsSaveAsModalOpen(true)}
+                      onLoad={handleLoadClick}
+                      savedPlans={savedPlans}
+                      currentPlanName={currentPlanName}
+                      isDirty={isDirty}
+                      feedbackMessage={feedbackMessage}
+                      onDeletePlan={handleDeletePlan}
+                    />
+
+                    <div className="bg-white dark:bg-slate-700 rounded-lg shadow-md">
+                      <div className="flex border-b border-slate-200 dark:border-slate-600">{(['squat', 'bench', 'deadlift'] as LiftType[]).map(liftType => {
+                        return (
+                          <button
+                            key={liftType}
+                            onClick={() => setActiveLiftTab(liftType)}
+                            className={`flex-1 py-4 text-sm md:text-base font-semibold capitalize transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 ${
+                              activeLiftTab === liftType
+                                ? 'text-blue-600 dark:text-blue-400 bg-slate-100 dark:bg-slate-600 border-b-2 border-blue-600 dark:border-blue-400'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600/50'
+                            }`}
+                          >
+                            {liftType}
+                          </button>
+                        );
+                      })}</div>
+                      <div className="bg-white dark:bg-slate-700 rounded-b-lg">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-600 animate-fadeIn">
+                          <div className="flex justify-center items-center gap-2 mb-4">
+                            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-200">Attempt Selection Strategy</h3>
+                            <InfoIcon onClick={() => showPopover(helpContent.attemptStrategy.title, helpContent.attemptStrategy.content)} />
+                          </div>
+                          <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-lg flex items-center justify-center gap-1 max-w-sm mx-auto">
+                            {(['aggressive', 'stepped', 'conservative'] as AttemptStrategy[]).map(strategy => (
+                              <button
+                                key={strategy}
+                                onClick={() => handleDetailChange('attemptStrategy', strategy)}
+                                className={`flex-1 px-4 py-2 text-sm font-semibold rounded-md transition-colors capitalize focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-700 focus:ring-slate-500 ${
+                                  details.attemptStrategy === strategy
+                                    ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow'
+                                    : 'bg-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-200/50 dark:hover:bg-slate-600/50'
+                                }`}
+                              >
+                                {strategy}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        <LiftSection key={activeLiftTab} containerClassName="p-6 animate-fadeIn" liftType={activeLiftTab} liftState={lifts[activeLiftTab]} unit={details.unit} planAttemptsInLbs={planAttemptsInLbs} isCoachingMode={isCoachingMode} onAttemptChange={handleAttemptChange} onWarmupChange={handleWarmupChange} onCueChange={handleCueChange} onCoachingNoteChange={handleCoachingNoteChange} onCalculateAttempts={handleCalculateAttempts} onGenerateWarmups={handleGenerateWarmups} onReset={handleReset} onCollarToggle={handleCollarToggle} onHelpClick={() => showPopover(helpContent.lifts.title, helpContent.lifts.content)} onWarmupStrategyChange={handleWarmupStrategyChange} onDynamicWarmupSettingsChange={handleDynamicWarmupSettingsChange} onWarmupHelpClick={() => showPopover(helpContent.warmupStrategy.title, helpContent.warmupStrategy.content)} autoGenerateWarmups={autoGenerateWarmups} />
+                      </div>
+                    </div>
+
+                    <div>
+                        <CollapsibleSection title="Personal Bests" initiallyOpen={false}>
+                            <PersonalBestsSection
+                                personalBests={appState.personalBests}
+                                unit={details.unit}
+                                onChange={handlePersonalBestChange}
+                            />
+                        </CollapsibleSection>
+
+                        <CollapsibleSection
+                            title="Export & Share Plan"
+                            initiallyOpen={!isMobile}
+                            onHelpClick={() => showPopover(exportHelpContent.title, exportHelpContent.content)}
+                        >
+                            <div className="flex flex-col sm:flex-row flex-wrap justify-center items-center gap-4">
+                                <button onClick={handleExportPlan} className="w-full sm:w-auto px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-bold rounded-lg shadow-md transition-transform transform hover:scale-105">Export Plan (.plp)</button>
+                                <button onClick={() => exportToCSV(appState)} className="w-full sm:w-auto px-6 py-3 bg-green-700 hover:bg-green-800 text-white font-bold rounded-lg shadow-md transition-transform transform hover:scale-105">Export to CSV</button>
+                                <button onClick={() => handleSavePdf(false)} className="w-full sm:w-auto px-6 py-3 bg-red-700 hover:bg-red-800 text-white font-bold rounded-lg shadow-md transition-transform transform hover:scale-105">Export PDF (Desktop)</button>
+                                <button onClick={() => handleSavePdf(true)} className="w-full sm:w-auto px-6 py-3 bg-blue-700 hover:bg-blue-800 text-white font-bold rounded-lg shadow-md transition-transform transform hover:scale-105">Export PDF (Mobile)</button>
+                                {canShare && <button onClick={() => handleSharePdf(true)} className="w-full sm:w-auto px-6 py-3 bg-purple-700 hover:bg-purple-800 text-white font-bold rounded-lg shadow-md transition-transform transform hover:scale-105">Share PDF</button>}
+                            </div>
+                        </CollapsibleSection>
+                        <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-6 rounded-lg shadow-md">
+                            <h3 className="text-2xl font-bold mb-2">Ready for the Platform?</h3>
+                            <p className="text-orange-100 mb-4">Switch to a simplified, high-contrast view for use during the competition.</p>
+                            <button onClick={() => setIsGameDayModeActive(true)} className="px-8 py-4 bg-white hover:bg-orange-50 text-orange-600 font-bold rounded-lg shadow-lg transition-transform transform hover:scale-105 text-xl" aria-label="Enter Game Day Mode">🚀 Launch Game Day Mode</button>
+                        </div>
+                    </div>
+                  </main>
+                  <aside className="hidden xl:block w-full xl:w-96 xl:sticky xl:top-8 self-start"><SummarySidebar lifterName={details.lifterName} total={predictedTotal} score={score} lifts={lifts} bodyWeight={details.bodyWeight} gender={details.gender} allAttemptsFilled={allNineAttemptsFilled} scoringFormula={details.scoringFormula} /></aside>
+              </>
+              ) : ( <LiteModeView appState={appState} onBuildPlan={handleBuildLitePlan} onLifterNameChange={(name) => handleDetailChange('lifterName', name)} onAttemptChange={handleAttemptChange} onWarmupChange={handleWarmupChange} onResetPlan={handleResetLitePlan} onLaunchGameDay={() => setIsGameDayModeActive(true)} onSaveLitePDF={handleSaveLitePdf} onImportPlanClick={handlePlannerImportClick} onHelpClick={() => showPopover(helpContent.liteMode.title, helpContent.liteMode.content)} /> )}
+            </div>
+          )}
+
+          {currentView === 'planner' && viewMode === 'pro' && (
+            <div className="block xl:hidden">
+                <button onClick={() => setIsSummarySheetOpen(true)} className="fixed bottom-0 left-0 right-0 w-full h-16 bg-slate-900/80 backdrop-blur-sm text-white p-2 shadow-lg flex justify-between items-center z-30" aria-label="Open plan summary"><div className="flex-1 text-center"><p className="text-xs font-medium text-slate-300">Total</p><p className={`text-xl font-bold tracking-tight ${predictedTotal > 0 && !allNineAttemptsFilled ? 'text-yellow-400' : ''}`}>{predictedTotal > 0 ? `${predictedTotal} kg` : '--'}</p></div><div className="border-l border-slate-600 h-3/5"></div><div className="flex-1 text-center"><p className="text-xs font-medium text-slate-300">Score</p><p className="text-xl font-bold tracking-tight">{renderMobileScore()}</p></div><div className="px-4 text-slate-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7-7" /></svg></div></button>
+                <MobileSummarySheet isOpen={isSummarySheetOpen} onClose={() => setIsSummarySheetOpen(false)} lifterName={details.lifterName} total={predictedTotal} score={score} lifts={lifts} bodyWeight={details.bodyWeight} gender={details.gender} allAttemptsFilled={allNineAttemptsFilled} scoringFormula={details.scoringFormula} />
+            </div>
+          )}
+
+          {isResetModalOpen && <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"><div className="bg-white dark:bg-slate-700 p-8 rounded-lg shadow-2xl max-w-sm w-full"><h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Confirm Clear Form</h3><p className="text-slate-600 dark:text-slate-300 mb-6">Are you sure you want to clear the form? This will remove all details and equipment settings, but will not delete your saved plans.</p><div className="flex justify-end gap-4"><button onClick={() => setIsResetModalOpen(false)} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 font-semibold rounded-md transition-colors dark:bg-slate-600 dark:hover:bg-slate-500 dark:text-slate-100">Cancel</button><button onClick={handleFullReset} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md transition-colors">Yes, Clear Form</button></div></div></div>}
+        </>
+      )}
     </div>
   );
 };
