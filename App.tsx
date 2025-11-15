@@ -1061,7 +1061,7 @@ const App: React.FC = () => {
                 onAttemptChange={handleAttemptChange}
                 onWarmupChange={handleWarmupChange}
                 onResetPlan={handleResetLitePlan}
-                onLaunchGameDay={() => showUpgradeModal('Game Day Mode', 'Streamlined interface designed for competition day with larger buttons, simplified controls, and real-time attempt tracking.')}
+                onLaunchGameDay={() => setIsGameDayModeActive(true)}
                 onSaveLitePDF={handleSaveLitePdf}
                 onImportPlanClick={handlePlannerImportClick}
                 onHelpClick={() => showPopover(helpContent.liteMode.title, helpContent.liteMode.content)}
