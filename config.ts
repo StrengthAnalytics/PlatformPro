@@ -14,6 +14,11 @@ export type AppMode = 'free' | 'paid';
  */
 export const APP_MODE: AppMode = (import.meta.env.VITE_APP_MODE as AppMode) || 'paid';
 
+// Debug logging - remove after confirming it works
+console.log('[Config] APP_MODE:', APP_MODE);
+console.log('[Config] IS_FREE_VERSION:', APP_MODE === 'free');
+console.log('[Config] Environment VITE_APP_MODE:', import.meta.env.VITE_APP_MODE);
+
 /**
  * Whether this is the free version (PlatformLifter)
  */
