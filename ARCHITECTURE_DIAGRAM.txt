@@ -1,0 +1,203 @@
+╔════════════════════════════════════════════════════════════════════════════════╗
+║                    PLATFORM COACH - ARCHITECTURE OVERVIEW                       ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           CURRENT STATE (V1)                                 │
+│                                                                              │
+│  ┌─ Vercel Deployment ──────────────────────────────────────────────────┐  │
+│  │                                                                      │  │
+│  │  ClerkProvider (index.tsx)                                          │  │
+│  │       ↓                                                             │  │
+│  │  ClerkAuth (mandatory)                                             │  │
+│  │       ├─ SignedOut → Welcome page (Sign In/Sign Up)               │  │
+│  │       └─ SignedIn → App.tsx routing                               │  │
+│  │             ├─ useSubscription hook checks:                       │  │
+│  │             │   ├─ has({ feature: 'premium_access' })            │  │
+│  │             │   ├─ has({ plan: 'free_plan' })                    │  │
+│  │             │   ├─ has({ plan: 'standard_coaching_membership' })  │  │
+│  │             │   └─ publicMetadata.freeAccess (manual override)    │  │
+│  │             │                                                     │  │
+│  │             └─ ALL signed-in users get ALL features              │  │
+│  │                 (SubscriptionGate exists but unused)              │  │
+│  │                                                                      │  │
+│  │  State Management (App.tsx - 977 lines):                            │  │
+│  │   - appState (centralized React state)                             │  │
+│  │   - localStorage persistence (plp_allPlans, etc.)                  │  │
+│  │   - All routing, modals, UI state                                  │  │
+│  │                                                                      │  │
+│  │  Tools (6 main tools):                                              │  │
+│  │   1. Competition Planner (Pro + Lite mode)  ← Already has tiers   │  │
+│  │   2. Workout Timer                                                 │  │
+│  │   3. 1RM Calculator + Training Load                                │  │
+│  │   4. Warm-up Generator (Standalone)                                │  │
+│  │   5. Velocity Profile Generator (2 modes)                          │  │
+│  │   6. Technique Score Calculator                                    │  │
+│  │                                                                      │  │
+│  │  Business Logic (Shared - No auth concerns):                        │  │
+│  │   - calculator.ts (attempt calc, warmups, scoring)                │  │
+│  │   - exportHandler.ts (PDF, CSV, file exports)                     │  │
+│  │   - constants.ts (strategies, formulas, warmup tables)            │  │
+│  │                                                                      │  │
+│  │  Offline Capability (PWA):                                          │  │
+│  │   - Service Worker (caches assets)                                 │  │
+│  │   - Works fully offline after first load                           │  │
+│  │                                                                      │  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    RECOMMENDED FREEMIUM ARCHITECTURE                         │
+│                           (Single Repo, V2)                                  │
+│                                                                              │
+│  ┌─ Vercel Deployment ──────────────────────────────────────────────────┐  │
+│  │                                                                      │  │
+│  │  index.tsx (modified)                                               │  │
+│  │       ↓                                                             │  │
+│  │  Try Load from localStorage → Free tier access?                    │  │
+│  │       ├─ YES (free user) → Skip Clerk Provider initially          │  │
+│  │       └─ NO → Show ClerkProvider                                   │  │
+│  │                                                                      │  │
+│  │  App.tsx (refactored) → AuthContext wrapper                        │  │
+│  │       ├─ User State:                                                │  │
+│  │       │   ├─ Free (Unauthenticated)                                │  │
+│  │       │   ├─ Free (Signed in, free plan)                           │  │
+│  │       │   ├─ Pro (Signed in, paid plan)                            │  │
+│  │       │   └─ Enterprise (future)                                    │  │
+│  │       │                                                             │  │
+│  │       └─ Permissions System:                                        │  │
+│  │           canSavePlans / canExportPDF / canAccessVBT, etc.        │  │
+│  │                                                                      │  │
+│  │  Route 1: FREE TIER (No Auth Required) ───────────────────┐       │  │
+│  │  ├─ Competition Planner LITE (quick plans, no save)      │       │  │
+│  │  ├─ Workout Timer (basic modes only)                     │       │  │
+│  │  ├─ Warm-up Generator (full features)                    │       │  │
+│  │  ├─ 1RM Calculator (single formula only)                 │       │  │
+│  │  ├─ NO Game Day Mode                                     │       │  │
+│  │  ├─ NO VBT/Technique Score                               │       │  │
+│  │  ├─ NO Plan Saving                                       │       │  │
+│  │  ├─ NO PDF/CSV Export                                    │       │  │
+│  │  ├─ CTA: "Sign Up for Full Access"                      │       │  │
+│  │  └─ PWA Offline Capability ✓                             │       │  │
+│  │                                                            │       │  │
+│  │  Route 2: FREE PLAN (Signed In, Free Tier) ────────────┐ │       │  │
+│  │  ├─ Same as Free (unauth)                              │ │       │  │
+│  │  ├─ PLUS: Save plans to user account (3 max)          │ │       │  │
+│  │  ├─ PLUS: Basic PDF export                            │ │       │  │
+│  │  └─ CTA: "Upgrade to Pro"                             │ │       │  │
+│  │                                                            │ │       │  │
+│  │  Route 3: PRO PLAN (Signed In, Paid) ──────────────────┤ │       │  │
+│  │  ├─ ALL Features Unlocked:                            │ │       │  │
+│  │  │  ├─ Competition Planner Pro + Lite                 │ │       │  │
+│  │  │  ├─ Game Day Mode                                  │ │       │  │
+│  │  │  ├─ Unlimited Plan Saving                          │ │       │  │
+│  │  │  ├─ PDF + CSV Export (desktop & mobile)           │ │       │  │
+│  │  │  ├─ 1RM + Training Load (all formulas)            │ │       │  │
+│  │  │  ├─ Velocity Profile Generator                     │ │       │  │
+│  │  │  ├─ Technique Score Calculator                     │ │       │  │
+│  │  │  └─ All timer modes + custom intervals             │ │       │  │
+│  │  └─ Optional: Cloud sync (future)                      │ │       │  │
+│  │                                                            │ │       │  │
+│  │  Shared Business Logic (No Changes):                     │ │       │  │
+│  │  ├─ calculator.ts (attempt calc, warmups)             │ │       │  │
+│  │  ├─ exportHandler.ts (gated at usage level)           │ │       │  │
+│  │  └─ constants.ts (formulas, tables)                   │ │       │  │
+│  │                                                            │ │       │  │
+│  │  Feature Gating Pattern:                                 │ │       │  │
+│  │  {subscription.canSavePlans ? (                        │ │       │  │
+│  │    <SaveButton />                                      │ │       │  │
+│  │  ) : (                                                 │ │       │  │
+│  │    <SubscriptionGate onUpgrade={...} />              │ │       │  │
+│  │  )}                                                    │ │       │  │
+│  │                                                            │ └─────│  │
+│  │  Clerk Setup (Unchanged):                              │         │  │
+│  │  ├─ Clerk Billing enabled                             │         │  │
+│  │  ├─ Plans: free_plan, pro_plan, enterprise_plan      │         │  │
+│  │  └─ Feature: premium_access (added to paid plans)     │         │  │
+│  │                                                            └─────────  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                         FEATURE COMPARISON MATRIX                            │
+├────────────────────────────────┬──────────────┬─────────┬────────────────────┤
+│ Feature                        │ Free (No Auth)│ Free(Auth)│ Pro  │ Enterprise │
+├────────────────────────────────┼──────────────┼──────────┼──────┼────────────┤
+│ Competition Planner Lite       │      ✓       │    ✓     │  ✓   │     ✓      │
+│ Competition Planner Pro        │      ✗       │    ✗     │  ✓   │     ✓      │
+│ Save Plans                     │      ✗       │    ✓ (3) │  ✓   │     ✓      │
+│ Game Day Mode                  │      ✗       │    ✗     │  ✓   │     ✓      │
+│ Workout Timer (Basic)          │      ✓       │    ✓     │  ✓   │     ✓      │
+│ Workout Timer (Advanced)       │      ✗       │    ✗     │  ✓   │     ✓      │
+│ 1RM Calculator (Basic Formula) │      ✓       │    ✓     │  ✓   │     ✓      │
+│ Training Load Calculator       │      ✗       │    ✗     │  ✓   │     ✓      │
+│ Warm-up Generator (Full)       │      ✓       │    ✓     │  ✓   │     ✓      │
+│ Velocity Profile Generator     │      ✗       │    ✗     │  ✓   │     ✓      │
+│ Technique Score Calculator     │      ✗       │    ✗     │  ✓   │     ✓      │
+│ PDF Export                     │      ✗       │    ✓(1x) │  ✓   │     ✓      │
+│ CSV Export                     │      ✗       │    ✗     │  ✓   │     ✓      │
+│ Offline Capability             │      ✓       │    ✓     │  ✓   │     ✓      │
+│ Cloud Sync (Future)            │      ✗       │    ✗     │  ✓   │     ✓      │
+└────────────────────────────────┴──────────────┴──────────┴──────┴────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│              SINGLE REPO ADVANTAGE - SHARED BUSINESS LOGIC                    │
+│                                                                              │
+│  95% of code is TIER-AGNOSTIC:                                              │
+│                                                                              │
+│  calculator.ts (598 lines)                                                  │
+│    ├─ calculateAttempts() → Works same for all tiers                       │
+│    ├─ generateWarmups() → Works same for all tiers                         │
+│    ├─ calculateScore() → Works same for all tiers                          │
+│    └─ No conditional logic needed                                           │
+│                                                                              │
+│  exportHandler.ts (904 lines)                                               │
+│    ├─ All export functions work same way                                    │
+│    ├─ Gating happens at CALLER level (not in utils)                        │
+│    └─ Example:                                                              │
+│        if (subscription.canExportPDF) {                                     │
+│          exportToPDF(...) // Same function for all                         │
+│        }                                                                    │
+│                                                                              │
+│  Components (41 total)                                                      │
+│    ├─ 5 components need gating (SaveLoadSection, GameDayMode, etc.)        │
+│    ├─ 35 components work as-is (no changes needed)                         │
+│    └─ Gating pattern wraps component, not modifies it                      │
+│                                                                              │
+│  Result: Minimal code duplication, maximum maintainability                 │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                    IMPLEMENTATION PHASES (2-3 SPRINTS)                       │
+│                                                                              │
+│  PHASE 1: Auth Refactoring (1 sprint)                                       │
+│  ├─ Make Clerk optional on first load                                       │
+│  ├─ Create AuthContext for subscription state                               │
+│  ├─ Test backward compatibility                                             │
+│  └─ Branch: feature/make-auth-optional                                      │
+│                                                                              │
+│  PHASE 2: Permission System (1 sprint)                                      │
+│  ├─ Define tier-based permissions                                           │
+│  ├─ Update useSubscription hook                                             │
+│  ├─ Gate 5 key components with SubscriptionGate                            │
+│  └─ Branch: feature/permission-system                                       │
+│                                                                              │
+│  PHASE 3: Clerk Integration (1 sprint)                                      │
+│  ├─ Create plans in Clerk Dashboard                                         │
+│  ├─ Test signup flow                                                        │
+│  ├─ Verify plan checking                                                    │
+│  └─ Branch: feature/clerk-plans                                             │
+│                                                                              │
+│  PHASE 4: Polish & Testing                                                  │
+│  ├─ Update help content                                                     │
+│  ├─ Add upgrade CTAs                                                        │
+│  ├─ Test offline experience                                                 │
+│  └─ Analytics (optional)                                                    │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+

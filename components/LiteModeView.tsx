@@ -3,6 +3,7 @@ import { AppState, LiftType } from '../types';
 import Section from './Section';
 import LiteModePlanDisplay from './LiteModePlanDisplay';
 import IconButton from './IconButton';
+import { IS_FREE_VERSION } from '../config';
 
 interface LiteModeViewProps {
   appState: AppState;
@@ -95,14 +96,14 @@ const LiteModeView: React.FC<LiteModeViewProps> = ({
                 </div>
             </div>
 
-            <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-6 rounded-lg shadow-md mt-8">
+            <div className={`${IS_FREE_VERSION ? 'bg-gradient-to-br from-[#0066FF] to-[#0044AA]' : 'bg-gradient-to-br from-orange-500 to-red-600'} text-white p-6 rounded-lg shadow-md mt-8`}>
               <h3 className="text-2xl font-bold mb-2">Ready for the Platform?</h3>
-              <p className="text-orange-100 mb-4">
+              <p className={`${IS_FREE_VERSION ? 'text-blue-100' : 'text-orange-100'} mb-4`}>
                 Switch to a simplified, high-contrast view for use during the competition.
               </p>
               <button
                 onClick={onLaunchGameDay}
-                className="px-8 py-4 bg-white hover:bg-orange-50 text-orange-600 font-bold rounded-lg shadow-lg transition-transform transform hover:scale-105 text-xl"
+                className={`px-8 py-4 bg-white ${IS_FREE_VERSION ? 'hover:bg-blue-50 text-blue-600' : 'hover:bg-orange-50 text-orange-600'} font-bold rounded-lg shadow-lg transition-transform transform hover:scale-105 text-xl`}
                 aria-label="Enter Game Day Mode"
               >
                 🚀 Launch Game Day Mode

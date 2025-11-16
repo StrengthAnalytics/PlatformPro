@@ -1,4 +1,5 @@
 import { useAuth, useUser } from '@clerk/clerk-react';
+import { IS_FREE_VERSION } from '../config';
 
 export type SubscriptionTier = 'free' | 'pro' | 'enterprise' | null;
 
@@ -16,6 +17,19 @@ interface SubscriptionData {
  * This directly checks Clerk Billing subscriptions - no webhook needed!
  */
 export function useSubscription(): SubscriptionData {
+  // Free version: No authentication, return free tier by default
+  if (IS_FREE_VERSION) {
+    return {
+      tier: 'free',
+      isActive: false,
+      isPro: false,
+      isEnterprise: false,
+      isFree: true,
+      isLoading: false,
+    };
+  }
+
+  // Paid version: Use Clerk hooks
   const { has, isLoaded } = useAuth();
   const { user } = useUser();
 

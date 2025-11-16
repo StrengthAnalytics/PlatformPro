@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton, PricingTable } from '@clerk/clerk-react';
 import { useSubscription } from './hooks/useSubscription';
+import { BRANDING, IS_FREE_VERSION, IS_PAID_VERSION } from './config';
 import Section from './components/Section';
 import PricingPage from './components/PricingPage';
 import LiftSection from './components/LiftSection';
@@ -26,6 +27,7 @@ import TechniqueScoreCalculator from './components/TechniqueScoreCalculator';
 import WorkoutTimer from './components/WorkoutTimer';
 import ModeToggle from './components/ModeToggle';
 import InfoIcon from './components/InfoIcon';
+import UpgradeModal from './components/UpgradeModal';
 import { calculateAttempts, generateWarmups, calculateScore } from './utils/calculator';
 import { exportToCSV, exportToPDF, exportToMobilePDF, savePdf, sharePdf } from './utils/exportHandler';
 import { IPF_WEIGHT_CLASSES } from './constants';
@@ -120,6 +122,8 @@ const App: React.FC = () => {
   const [planAttemptsInLbs, setPlanAttemptsInLbs] = useState(false);
   const [isCoachingMode, setIsCoachingMode] = useState(false);
   const [autoGenerateWarmups, setAutoGenerateWarmups] = useState(false);
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
+  const [upgradeModalFeature, setUpgradeModalFeature] = useState<{name: string; description?: string}>({name: ''});
   const isMobile = useIsMobile();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fileChangeCallbackRef = useRef<((e: React.ChangeEvent<HTMLInputElement>) => void) | null>(null);
@@ -196,9 +200,21 @@ const App: React.FC = () => {
       localStorage.setItem('plp_theme', theme);
   }, [theme]);
 
+  // Set dynamic branding based on APP_MODE (free vs paid version)
   useEffect(() => {
-    if (viewMode === 'lite') setVelocityProfileMode('test');
-  }, [viewMode]);
+    document.title = BRANDING.appTitle;
+    const themeColorMeta = document.getElementById('theme-color-meta') as HTMLMetaElement;
+    if (themeColorMeta) {
+      themeColorMeta.content = BRANDING.themeColor;
+    }
+  }, []);
+
+  useEffect(() => {
+    // Only enforce velocity profile mode restriction in paid version when switching planner modes
+    if (IS_PAID_VERSION && currentView === 'planner' && viewMode === 'lite') {
+      setVelocityProfileMode('test');
+    }
+  }, [viewMode, currentView]);
 
   const triggerImport = (accept: string, callback: (e: React.ChangeEvent<HTMLInputElement>) => void) => {
     if (fileInputRef.current) {
@@ -247,6 +263,31 @@ const App: React.FC = () => {
   
   const showPopover = (title: string, content: React.ReactNode) => setPopoverState({ isOpen: true, title, content });
   const hidePopover = () => setPopoverState({ isOpen: false, title: '', content: null });
+
+  const showUpgradeModal = (featureName: string, featureDescription?: string) => {
+    setUpgradeModalFeature({ name: featureName, description: featureDescription });
+    setUpgradeModalOpen(true);
+  };
+
+  const handleViewModeToggle = (newMode: 'pro' | 'lite') => {
+    if (IS_FREE_VERSION && newMode === 'pro') {
+      showUpgradeModal('Pro Planner', 'Access the full competition planner with detailed equipment settings, personal bests tracking, and unlimited saves & exports.');
+      return;
+    }
+    setViewMode(newMode);
+  };
+
+  const handleVelocityModeToggle = (newMode: string) => {
+    if (IS_FREE_VERSION && newMode === 'generate') {
+      showUpgradeModal('Generate Velocity Profile', 'Create personalized velocity-based training profiles based on your test results. Perfect for coaches planning VBT programs.');
+      return;
+    }
+    if (viewMode === 'lite' && newMode === 'generate') {
+      alert("The 'Generate Profile' feature is for coaches in Pro mode. Athletes should use the 'Complete Test' feature.");
+      return;
+    }
+    setVelocityProfileMode(newMode as 'generate' | 'test');
+  };
 
   const handleSelectAndLoadPlan = (name: string) => {
     if (name === '') {
@@ -652,10 +693,10 @@ const App: React.FC = () => {
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
   const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
-  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: 'PLATFORM COACH' };
+  const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: IS_FREE_VERSION ? 'PLATFORM LIFTER' : 'PLATFORM COACH' };
 
   return (
-    <div className="font-sans bg-gradient-to-br from-[#0066FF] to-[#0044AA] min-h-screen">
+    <div className={`font-sans ${BRANDING.backgroundGradient} min-h-screen`}>
       <input type="file" ref={fileInputRef} onChange={onFileInputChange} className="hidden" aria-hidden="true" />
       <header className="bg-slate-900 text-white p-6 shadow-xl">
         <div className="max-w-7xl mx-auto">
@@ -663,29 +704,33 @@ const App: React.FC = () => {
             <div className="relative flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-center">{headerTitles.homescreen}</h1>
               <div className="sm:absolute sm:right-0 flex items-center gap-3">
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
-                      Sign In
-                    </button>
-                  </SignInButton>
-                  <SignUpButton mode="modal" forceRedirectUrl="/">
-                    <button className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
-                      Sign Up
-                    </button>
-                  </SignUpButton>
-                </SignedOut>
-                <SignedIn>
-                  {(subscription.isPro || subscription.isEnterprise) && (
-                    <button
-                      onClick={() => setCurrentView('pricing')}
-                      className="px-3 py-1.5 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
-                    >
-                      {subscription.tier?.toUpperCase()}
-                    </button>
-                  )}
-                  <UserButton afterSignOutUrl="/" />
-                </SignedIn>
+                {IS_PAID_VERSION && (
+                  <>
+                    <SignedOut>
+                      <SignInButton mode="modal">
+                        <button className="px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                          Sign In
+                        </button>
+                      </SignInButton>
+                      <SignUpButton mode="modal" forceRedirectUrl="/">
+                        <button className="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                          Sign Up
+                        </button>
+                      </SignUpButton>
+                    </SignedOut>
+                    <SignedIn>
+                      {(subscription.isPro || subscription.isEnterprise) && (
+                        <button
+                          onClick={() => setCurrentView('pricing')}
+                          className="px-3 py-1.5 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                        >
+                          {subscription.tier?.toUpperCase()}
+                        </button>
+                      )}
+                      <UserButton afterSignOutUrl="/" />
+                    </SignedIn>
+                  </>
+                )}
                 <SettingsMenu {...commonSettingsMenuProps} />
               </div>
             </div>
@@ -694,31 +739,35 @@ const App: React.FC = () => {
               <div className="text-center"><h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{headerTitles[currentView]}</h1></div>
               <div className="grid grid-cols-3 items-center">
                 <div className="flex justify-start"><button onClick={() => setCurrentView('homescreen')} className="text-slate-400 hover:text-white transition-colors p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50" aria-label="Back to toolkit home"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></button></div>
-                <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={setViewMode} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={(newMode) => { if (viewMode === 'lite' && newMode === 'generate') { alert("The 'Generate Profile' feature is for coaches in Pro mode. Athletes should use the 'Complete Test' feature."); return; } setVelocityProfileMode(newMode as 'generate' | 'test'); }} disabled={viewMode === 'lite'} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
+                <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={handleViewModeToggle} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={handleVelocityModeToggle} disabled={IS_PAID_VERSION && viewMode === 'lite'} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
                 <div className="flex justify-end items-center gap-3">
-                  <SignedOut>
-                    <SignInButton mode="modal">
-                      <button className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
-                        Sign In
-                      </button>
-                    </SignInButton>
-                    <SignUpButton mode="modal" forceRedirectUrl="/">
-                      <button className="px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
-                        Sign Up
-                      </button>
-                    </SignUpButton>
-                  </SignedOut>
-                  <SignedIn>
-                    {(subscription.isPro || subscription.isEnterprise) && (
-                      <button
-                        onClick={() => setCurrentView('pricing')}
-                        className="px-2 py-1 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
-                      >
-                        {subscription.tier?.toUpperCase()}
-                      </button>
-                    )}
-                    <UserButton afterSignOutUrl="/" />
-                  </SignedIn>
+                  {IS_PAID_VERSION && (
+                    <>
+                      <SignedOut>
+                        <SignInButton mode="modal">
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors">
+                            Sign In
+                          </button>
+                        </SignInButton>
+                        <SignUpButton mode="modal" forceRedirectUrl="/">
+                          <button className="px-3 py-1.5 text-xs font-semibold text-white bg-green-600 hover:bg-green-700 rounded-md transition-colors">
+                            Sign Up
+                          </button>
+                        </SignUpButton>
+                      </SignedOut>
+                      <SignedIn>
+                        {(subscription.isPro || subscription.isEnterprise) && (
+                          <button
+                            onClick={() => setCurrentView('pricing')}
+                            className="px-2 py-1 text-xs font-semibold text-purple-900 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-md shadow-sm"
+                          >
+                            {subscription.tier?.toUpperCase()}
+                          </button>
+                        )}
+                        <UserButton afterSignOutUrl="/" />
+                      </SignedIn>
+                    </>
+                  )}
                   { (currentView === 'planner' || currentView === 'velocityProfile') && <SettingsMenu {...commonSettingsMenuProps} /> }
                 </div>
               </div>
@@ -732,6 +781,7 @@ const App: React.FC = () => {
       <ToolsModal isOpen={isToolsModalOpen} onClose={() => setIsToolsModalOpen(false)} />
       {isSaveAsModalOpen && <SaveAsModal isOpen={isSaveAsModalOpen} onClose={() => setIsSaveAsModalOpen(false)} onSave={handleSaveAs} existingPlanNames={Object.keys(savedPlans)} />}
 
+      {IS_PAID_VERSION && (
       <SignedOut>
         {/* Welcome page with Sign In / Sign Up */}
         <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
@@ -807,7 +857,9 @@ const App: React.FC = () => {
           </div>
         </div>
       </SignedOut>
+      )}
 
+      {IS_PAID_VERSION && (
       <SignedIn>
       {/* Show loading state while checking subscription */}
       {subscription.isLoading ? (
@@ -971,6 +1023,60 @@ const App: React.FC = () => {
         </>
       )}
       </SignedIn>
+      )}
+
+      {IS_FREE_VERSION && (
+        <>
+          {/* Free version: Direct access to free features, upgrade modals for pro features */}
+          {currentView === 'homescreen' && <Homescreen
+            onNavigateToPlanner={() => { setCurrentView('planner'); setViewMode('lite'); }}
+            onNavigateToOneRepMax={() => showUpgradeModal('1RM Calculator', 'Calculate your one-rep max with multiple formulas, track training load, and analyze your strength levels.')}
+            onNavigateToWarmupGenerator={() => setCurrentView('warmupGenerator')}
+            onNavigateToVelocityProfile={() => { setCurrentView('velocityProfile'); setVelocityProfileMode('test'); }}
+            onNavigateToTechniqueScore={() => showUpgradeModal('Technique Score Calculator', 'Analyze your lifting technique with velocity-based metrics and get instant feedback on bar path efficiency.')}
+            onNavigateToWorkoutTimer={() => setCurrentView('workoutTimer')}
+          />}
+          {currentView === 'warmupGenerator' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WarmupGenerator /></div>}
+          {currentView === 'velocityProfile' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><VelocityProfileGenerator
+            branding={appState.branding}
+            mode="test"
+            onHelpClick={(mode) => {
+                if (mode === 'generate') {
+                    showPopover(helpContent.velocityProfileGenerate.title, helpContent.velocityProfileGenerate.content);
+                } else {
+                    showPopover(helpContent.velocityProfileTest.title, helpContent.velocityProfileTest.content);
+                }
+            }}
+            onTriggerImport={triggerImport}
+          /></div>}
+          {currentView === 'workoutTimer' && <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8"><WorkoutTimer /></div>}
+          {currentView === 'pricing' && <PricingPage onClose={() => setCurrentView('homescreen')} />}
+
+          {currentView === 'planner' && (
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+              <LiteModeView
+                appState={appState}
+                onBuildPlan={handleBuildLitePlan}
+                onLifterNameChange={(name) => handleDetailChange('lifterName', name)}
+                onAttemptChange={handleAttemptChange}
+                onWarmupChange={handleWarmupChange}
+                onResetPlan={handleResetLitePlan}
+                onLaunchGameDay={() => setIsGameDayModeActive(true)}
+                onSaveLitePDF={handleSaveLitePdf}
+                onImportPlanClick={handlePlannerImportClick}
+                onHelpClick={() => showPopover(helpContent.liteMode.title, helpContent.liteMode.content)}
+              />
+            </div>
+          )}
+
+          <UpgradeModal
+            isOpen={upgradeModalOpen}
+            onClose={() => setUpgradeModalOpen(false)}
+            featureName={upgradeModalFeature.name}
+            featureDescription={upgradeModalFeature.description}
+          />
+        </>
+      )}
     </div>
   );
 };
