@@ -2,9 +2,48 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ClerkProvider } from '@clerk/clerk-react';
-import { IS_FREE_VERSION, IS_PAID_VERSION, CLERK_PUBLISHABLE_KEY } from './config';
+import { IS_FREE_VERSION, IS_PAID_VERSION, CLERK_PUBLISHABLE_KEY, BRANDING } from './config';
 
 const PUBLISHABLE_KEY = CLERK_PUBLISHABLE_KEY;
+
+// Dynamically update PWA meta tags based on app mode
+const updatePWAMetaTags = () => {
+  // Update document title
+  document.title = BRANDING.appName;
+
+  // Update theme color
+  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeColorMeta) {
+    themeColorMeta.setAttribute('content', BRANDING.themeColor);
+  }
+
+  // Update Apple mobile web app title
+  const appleTitleMeta = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+  if (appleTitleMeta) {
+    appleTitleMeta.setAttribute('content', BRANDING.appName);
+  }
+
+  // Update description
+  const descriptionMeta = document.querySelector('meta[name="description"]');
+  if (descriptionMeta) {
+    const description = IS_FREE_VERSION
+      ? 'Free powerlifting tools for athletes and coaches'
+      : 'The essential toolkit for competitive powerlifters and coaches, designed to plan and execute on meet day.';
+    descriptionMeta.setAttribute('content', description);
+  }
+
+  // Update Apple touch icon
+  const appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"]');
+  if (appleTouchIcon) {
+    const iconPath = IS_FREE_VERSION ? '/icons/icon-192-free.svg' : '/icons/icon-192-paid.svg';
+    appleTouchIcon.setAttribute('href', iconPath);
+  }
+
+  console.log(`[PWA] Meta tags updated for ${BRANDING.appName}`);
+};
+
+// Run on load
+updatePWAMetaTags();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
