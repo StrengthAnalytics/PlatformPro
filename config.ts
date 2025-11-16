@@ -49,7 +49,7 @@ export const BRANDING = {
   backgroundGradient: IS_FREE_VERSION
     ? 'bg-gradient-to-br from-orange-500 to-red-600'
     : 'bg-gradient-to-br from-[#0066FF] to-[#0044AA]',
-  themeColor: IS_FREE_VERSION ? '#f97316' : '#0066ff', // orange-500 vs blue
+  themeColor: IS_FREE_VERSION ? '#FF6D2D' : '#0066ff', // bright orange vs blue
 };
 
 /**

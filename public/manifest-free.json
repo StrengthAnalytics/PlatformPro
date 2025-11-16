@@ -4,8 +4,8 @@
   "description": "Free powerlifting tools for athletes and coaches",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f97316",
-  "theme_color": "#f97316",
+  "background_color": "#FF6D2D",
+  "theme_color": "#FF6D2D",
   "icons": [
     {
       "src": "/icons/icon-192-free.svg",
