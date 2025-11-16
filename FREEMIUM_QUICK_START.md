@@ -1,5 +1,14 @@
 # Freemium Quick Start Checklist
 
+> **NOTE:** This is a historical planning document from the initial architecture phase. The dual deployment freemium model has been **successfully implemented**. For current documentation, see:
+> - `README.md` - Complete project overview
+> - `DEPLOYMENT.md` - Deployment instructions for both versions
+> - `DUAL_DEPLOYMENT_GUIDE.md` - Step-by-step deployment guide
+
+---
+
+# ⚠️ Historical Planning Document
+
 ## Read This First
 
 You have 4 comprehensive documents to guide you:

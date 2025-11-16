@@ -1,5 +1,14 @@
 # Platform Coach - Freemium Architecture Analysis
 
+> **NOTE:** This is a historical planning document from the initial architecture phase. The dual deployment freemium model has been **successfully implemented**. For current documentation, see:
+> - `README.md` - Complete project overview
+> - `DEPLOYMENT.md` - Deployment instructions for both versions
+> - `DUAL_DEPLOYMENT_GUIDE.md` - Step-by-step deployment guide
+
+---
+
+# ⚠️ Historical Planning Document
+
 ## EXECUTIVE SUMMARY
 
 Platform Coach is a **client-side React PWA** (Progressive Web App) built with Vite, TypeScript, and Clerk authentication. The current architecture has existing subscription gating implemented using Clerk Billing. To implement a freemium model with a free version accessible without authentication, you have **two viable approaches**: (1) Single repo with conditional feature gating (recommended), or (2) Separate repos for free and paid versions.

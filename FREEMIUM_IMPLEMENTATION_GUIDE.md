@@ -1,5 +1,14 @@
 # Freemium Implementation Guide
 
+> **NOTE:** This is a historical planning document from the initial architecture phase. The dual deployment freemium model has been **successfully implemented**. For current documentation, see:
+> - `README.md` - Complete project overview
+> - `DEPLOYMENT.md` - Deployment instructions for both versions
+> - `DUAL_DEPLOYMENT_GUIDE.md` - Step-by-step deployment guide
+
+---
+
+# ⚠️ Historical Planning Document
+
 ## Quick Start: What You Need to Know
 
 **Bottom Line:** Platform Coach is perfectly positioned for a freemium model because:

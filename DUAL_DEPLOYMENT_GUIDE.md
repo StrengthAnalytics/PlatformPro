@@ -57,7 +57,7 @@ Click "Environment Variables" and add:
 
 ```
 VITE_APP_MODE=free
-VITE_UPGRADE_URL=https://yourdomain.com/pricing
+VITE_UPGRADE_URL=https://platformcoach.app
 ```
 
 **Important**: Do NOT add `VITE_CLERK_PUBLISHABLE_KEY` for the free version.
@@ -150,7 +150,7 @@ All logic is in these files:
 ```bash
 # Create .env.local file
 echo "VITE_APP_MODE=free" > .env.local
-echo "VITE_UPGRADE_URL=http://localhost:3001/pricing" >> .env.local
+echo "VITE_UPGRADE_URL=https://platformcoach.app" >> .env.local
 
 npm run dev
 ```
@@ -249,7 +249,7 @@ if (!isPro) {
 **Environment Variables**:
 ```
 VITE_APP_MODE=free
-VITE_UPGRADE_URL=https://platformcoach.com/pricing
+VITE_UPGRADE_URL=https://platformcoach.app
 ```
 **Domains**: `platformlifter.app`
 
