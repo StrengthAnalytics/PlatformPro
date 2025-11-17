@@ -1,32 +1,32 @@
 {
-  "name": "Platform Coach",
-  "short_name": "Platform Coach",
-  "description": "The essential toolkit for competitive powerlifters and coaches, designed to plan and execute on meet day.",
+  "name": "Platform Lifter",
+  "short_name": "Platform Lifter",
+  "description": "Free powerlifting tools for athletes and coaches",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0066ff",
-  "theme_color": "#0066ff",
+  "background_color": "#FF6D2D",
+  "theme_color": "#FF6D2D",
   "icons": [
     {
-      "src": "/icons/icon-192-paid.svg",
+      "src": "/icons/icon-192-free.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-192-paid.svg",
+      "src": "/icons/icon-192-free.svg",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "maskable"
     },
     {
-      "src": "/icons/icon-512-paid.svg",
+      "src": "/icons/icon-512-free.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512-paid.svg",
+      "src": "/icons/icon-512-free.svg",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "maskable"

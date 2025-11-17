@@ -1,4 +1,4 @@
-// Platform Coach PWA Service Worker
+// Platform PWA Service Worker
 /// <reference lib="webworker" />
 
 // Type definitions for service worker
@@ -11,8 +11,13 @@ interface WorkboxManifestEntry {
 declare const self: ServiceWorkerGlobalScope;
 declare const __WB_MANIFEST: WorkboxManifestEntry[];
 
-const CACHE_NAME = 'platform-coach-v1';
-const RUNTIME_CACHE = 'platform-coach-runtime-v1';
+// Determine app mode from environment variable (replaced at build time)
+// @ts-ignore - VITE_APP_MODE is replaced by Vite during build
+const APP_MODE = typeof import.meta !== 'undefined' && import.meta.env?.VITE_APP_MODE || 'paid';
+const APP_NAME = APP_MODE === 'free' ? 'platform-lifter' : 'platform-coach';
+
+const CACHE_NAME = `${APP_NAME}-v1`;
+const RUNTIME_CACHE = `${APP_NAME}-runtime-v1`;
 
 // Workbox manifest placeholder (will be replaced during build)
 // @ts-ignore - __WB_MANIFEST is injected by vite-plugin-pwa
