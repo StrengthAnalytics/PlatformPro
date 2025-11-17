@@ -211,8 +211,13 @@ const App: React.FC = () => {
 
   useEffect(() => {
     // Only enforce velocity profile mode restriction in paid version when switching planner modes
-    if (IS_PAID_VERSION && currentView === 'planner' && viewMode === 'lite') {
-      setVelocityProfileMode('test');
+    if (IS_PAID_VERSION && currentView === 'planner') {
+      if (viewMode === 'lite') {
+        setVelocityProfileMode('test');
+      } else if (viewMode === 'pro') {
+        // Reset to 'generate' when switching back to pro mode
+        setVelocityProfileMode('generate');
+      }
     }
   }, [viewMode, currentView]);
 
@@ -739,7 +744,7 @@ const App: React.FC = () => {
               <div className="text-center"><h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">{headerTitles[currentView]}</h1></div>
               <div className="grid grid-cols-3 items-center">
                 <div className="flex justify-start"><button onClick={() => setCurrentView('homescreen')} className="text-slate-400 hover:text-white transition-colors p-2 rounded-full bg-slate-800/50 hover:bg-slate-700/50" aria-label="Back to toolkit home"><svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg></button></div>
-                <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={handleViewModeToggle} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={handleVelocityModeToggle} disabled={IS_PAID_VERSION && viewMode === 'lite'} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
+                <div className="flex justify-center items-center gap-4">{currentView === 'planner' && <ViewToggle mode={viewMode} onToggle={handleViewModeToggle} />}{currentView === 'velocityProfile' && <ModeToggle modes={[{ key: 'generate', label: 'Generate Profile' }, { key: 'test', label: 'Complete Test' }]} activeMode={velocityProfileMode} onToggle={handleVelocityModeToggle} />}{(currentView === 'oneRepMax' || currentView === 'warmupGenerator' || currentView === 'techniqueScore' || currentView === 'workoutTimer') && <SettingsMenu {...commonSettingsMenuProps} />}</div>
                 <div className="flex justify-end items-center gap-3">
                   {IS_PAID_VERSION && (
                     <>
