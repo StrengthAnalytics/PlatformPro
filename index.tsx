@@ -39,6 +39,13 @@ const updatePWAMetaTags = () => {
     appleTouchIcon.setAttribute('href', iconPath);
   }
 
+  // Update favicon
+  const favicon = document.querySelector('link[rel="icon"]');
+  if (favicon) {
+    const faviconPath = IS_FREE_VERSION ? '/favicon-free.svg' : '/favicon-paid.svg';
+    favicon.setAttribute('href', faviconPath);
+  }
+
   console.log(`[PWA] Meta tags updated for ${BRANDING.appName}`);
 };
 
