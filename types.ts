@@ -161,3 +161,31 @@ export interface OneRepMaxExportData {
     unit: 'kg' | 'lbs';
     results: OneRepMaxResults;
 }
+
+// Powerlifting Records Types
+export interface PowerliftingRecord {
+  region: string;
+  name: string;
+  weightClass: string;
+  gender: 'M' | 'F';
+  lift: 'squat' | 'bench_press' | 'bench_press_ac' | 'deadlift' | 'total';
+  ageCategory: string;
+  record: number;
+  dateSet: string;
+  equipment: 'equipped' | 'unequipped';
+}
+
+export interface RecordLookupParams {
+  gender?: 'M' | 'F';
+  weightClass?: string;
+  lift?: 'squat' | 'bench_press' | 'bench_press_ac' | 'deadlift' | 'total';
+  ageCategory?: string;
+  equipment?: 'equipped' | 'unequipped';
+  region?: string;
+}
+
+export interface RecordComparison {
+  record: PowerliftingRecord;
+  difference: number;
+  percentageOfRecord: number;
+}
