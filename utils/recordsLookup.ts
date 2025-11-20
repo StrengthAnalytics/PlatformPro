@@ -13,16 +13,20 @@ let recordsCache: PowerliftingRecord[] | null = null;
  * Get all records (lazy-loaded)
  */
 export function getRecords(): PowerliftingRecord[] {
-  if (recordsCache === null) {
-    try {
-      const { getRecordsData } = require('./recordsData');
-      recordsCache = getRecordsData();
-    } catch (error) {
-      console.warn('Records data not available. Run "npm run build:data" to generate records.');
-      recordsCache = [];
-    }
+  if (recordsCache !== null) {
+    return recordsCache;
   }
-  return recordsCache;
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { getRecordsData } = require('./recordsData') as { getRecordsData: () => PowerliftingRecord[] };
+    recordsCache = getRecordsData();
+    return recordsCache;
+  } catch (error) {
+    console.warn('Records data not available. Run "npm run build:data" to generate records.');
+    recordsCache = [];
+    return recordsCache;
+  }
 }
 
 /**
