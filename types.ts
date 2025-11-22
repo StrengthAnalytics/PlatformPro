@@ -25,6 +25,9 @@ export interface CompetitionDetails {
   scoringFormula: ScoringFormula;
   unit: 'kg' | 'lbs';
   attemptStrategy: AttemptStrategy;
+  recordsRegion?: string;
+  recordsAgeCategory?: string;
+  recordsEquipment?: 'equipped' | 'unequipped';
 }
 
 export interface EquipmentSettings {

@@ -8,6 +8,7 @@ import LiftSection from './components/LiftSection';
 import SaveLoadSection from './components/SaveLoadSection';
 import BrandingSection from './components/BrandingSection';
 import PersonalBestsSection from './components/PersonalBestsSection';
+import RecordsComparisonSection from './components/RecordsComparisonSection';
 import CollapsibleSection from './components/CollapsibleSection';
 import Popover from './components/Popover';
 import SummarySidebar from './components/SummarySidebar';
@@ -392,6 +393,38 @@ const App: React.FC = () => {
         ...prev.personalBests,
         [lift]: { ...prev.personalBests[lift], [field]: value }
       }
+    }));
+    setIsDirty(true);
+  };
+
+  const handleRecordsRegionChange = (region: string) => {
+    setAppState(prev => ({
+      ...prev,
+      details: { ...prev.details, recordsRegion: region }
+    }));
+    setIsDirty(true);
+  };
+
+  const handleRecordsWeightClassChange = (weightClass: string) => {
+    setAppState(prev => ({
+      ...prev,
+      details: { ...prev.details, weightClass }
+    }));
+    setIsDirty(true);
+  };
+
+  const handleRecordsAgeCategoryChange = (ageCategory: string) => {
+    setAppState(prev => ({
+      ...prev,
+      details: { ...prev.details, recordsAgeCategory: ageCategory }
+    }));
+    setIsDirty(true);
+  };
+
+  const handleRecordsEquipmentChange = (equipment: 'equipped' | 'unequipped') => {
+    setAppState(prev => ({
+      ...prev,
+      details: { ...prev.details, recordsEquipment: equipment }
     }));
     setIsDirty(true);
   };
@@ -983,6 +1016,20 @@ const App: React.FC = () => {
                 </div>
 
                 <div>
+                    <CollapsibleSection title="Record Comparison" initiallyOpen={false}>
+                        <RecordsComparisonSection
+                            region={details.recordsRegion || ''}
+                            weightClass={details.weightClass || ''}
+                            ageCategory={details.recordsAgeCategory || 'Open'}
+                            equipment={details.recordsEquipment || 'unequipped'}
+                            onRegionChange={handleRecordsRegionChange}
+                            onWeightClassChange={handleRecordsWeightClassChange}
+                            onAgeCategoryChange={handleRecordsAgeCategoryChange}
+                            onEquipmentChange={handleRecordsEquipmentChange}
+                            gender={details.gender}
+                        />
+                    </CollapsibleSection>
+
                     <CollapsibleSection title="Personal Bests" initiallyOpen={false}>
                         <PersonalBestsSection
                             personalBests={appState.personalBests}

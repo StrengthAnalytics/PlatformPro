@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { LiftType, GameDayLiftState, AttemptStatus, CompetitionDetails, ScoringFormula } from '../types';
 import IconButton from './IconButton';
 import { getPlateBreakdown, getLbsPlateBreakdown, calculateScore } from '../utils/calculator';
+import { findTopRecord } from '../utils/recordsLookup';
 
 interface GameDayModeProps {
   gameDayState: Record<LiftType, GameDayLiftState>;
@@ -96,6 +97,30 @@ const GameDayMode: React.FC<GameDayModeProps> = ({ gameDayState, onGameDayUpdate
     }
     return calculateScore(currentTotal, bw, gender, scoringFormula, isBenchOnly);
   }, [currentTotal, details, isBenchOnly]);
+
+  const currentLiftRecord = useMemo(() => {
+    if (!details.recordsRegion || !details.weightClass || !details.recordsAgeCategory || !details.recordsEquipment || !details.gender) {
+      return null;
+    }
+
+    const genderForRecords = details.gender === 'male' ? 'M' : details.gender === 'female' ? 'F' : undefined;
+    if (!genderForRecords) return null;
+
+    const liftRecordMap: Record<LiftType, 'squat' | 'bench_press' | 'deadlift'> = {
+      squat: 'squat',
+      bench: 'bench_press',
+      deadlift: 'deadlift',
+    };
+
+    return findTopRecord({
+      gender: genderForRecords,
+      weightClass: details.weightClass,
+      ageCategory: details.recordsAgeCategory,
+      equipment: details.recordsEquipment,
+      region: details.recordsRegion,
+      lift: liftRecordMap[activeLift],
+    });
+  }, [details, activeLift]);
 
   const formulaLabels: Record<ScoringFormula, string> = {
     ipfgl: 'IPF GL Score',
@@ -320,6 +345,15 @@ const GameDayMode: React.FC<GameDayModeProps> = ({ gameDayState, onGameDayUpdate
                     )
                 )}
             </div>
+            {currentLiftRecord && (
+                <>
+                    <div className="border-l border-slate-700 h-12"></div>
+                    <div>
+                        <span className="text-sm font-semibold text-amber-400">{details.recordsRegion} Record</span>
+                        <p className="text-2xl sm:text-3xl font-bold text-amber-300 tracking-tight">{currentLiftRecord.record} kg</p>
+                    </div>
+                </>
+            )}
         </div>
         <IconButton
           onClick={onExit}
