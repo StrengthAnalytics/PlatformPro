@@ -71,15 +71,15 @@ const helpContent = {
     equipment: { title: 'Equipment Settings', content: <p>Note your personal equipment settings here to have everything in one place on meet day. These settings will be listed on your PDF export for quick reference during warm-ups.</p> },
     saveLoad: { title: 'Save & Load Plans', content: <><p className="mb-2">This section allows you to save, load, and delete your competition plans.</p><ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-2"><li><strong>Load Saved Plan:</strong> Select a plan from the dropdown to immediately load it into the editor. Select "-- New Plan --" to start fresh.</li><li><strong>Save Changes:</strong> This button is only active when you've made changes to a loaded plan (indicated by a <span className="text-amber-600 font-bold">*</span>). It updates the current plan.</li><li><strong>Save As...:</strong> Click this to save the current plan (whether new or existing) under a new name. A modal will ask you for a name.</li><li><strong>Delete Current Plan:</strong> This will delete the plan that is currently loaded in the editor.</li><li><strong>Import/Export Plan:</strong> Share your plan with a coach or athlete by exporting it to a `.plp` file. They can then import this file to view and edit the full plan.</li></ul></> },
     branding: { title: 'Branding & Theming', content: <p>Personalize your exported PDF plan. You can upload your own logo (team, gym, or personal) and choose primary and secondary colors for the PDF headers to match your brand. These settings are saved in your browser for future use.</p> },
-    attemptStrategy: { 
-        title: 'Attempt Selection Strategy', 
+    attemptStrategy: {
+        title: 'Attempt Selection Strategy',
         content: (
             <>
                 <p className="mb-3">Choose the strategy for calculating your attempts. This determines the jumps between your opener, second, and third attempts.</p>
                 <div className="space-y-3">
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Aggressive (Default)</h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Maximizes the jumps to aim for the highest possible third attempt. Best for lifters who are confident and performing well.</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">This strategy assumes a lifter would like to open heavier than usual with a smaller overall jump from their opener to their third. (Popular for Bench Press but risky on Deadlifts)</p>
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Stepped</h4>
@@ -87,11 +87,11 @@ const helpContent = {
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Conservative</h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Uses smaller, safer jumps, prioritizing making lifts over pushing for a max single. Good for securing a total or if feeling off on meet day.</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">This strategy assumes a lifter would like to open lighter than usual with a larger overall jump from their opener to their third. (Good for beginners or for securing opening lifts)</p>
                     </div>
                 </div>
             </>
-        ) 
+        )
     },
     lifts: { title: 'Lift Attempts & Cues', content: <><p className="mb-2">Plan your competition attempts for this lift:</p><ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-2"><li><strong>Enter an Attempt:</strong> Input either your planned <strong>Opener (1st)</strong> or your goal <strong>3rd Attempt</strong>. You can choose to enter in kg or lbs in the settings menu (⚙️).</li><li><strong>Calculate:</strong> Click to automatically fill in the other two attempts based on the selected 'Attempt Selection Strategy'.</li><li><strong>Add Cues:</strong> A space for personal technical cues that will appear on your PDF.</li></ul><p className="mt-3 text-sm text-slate-500 dark:text-slate-400">All warm-up settings and generation are handled in the "Warm-up Strategy" section below.</p></> },
     warmupStrategy: { title: 'Warm-up Strategy', content: <><p className="mb-2">Choose how your warm-up sets are generated based on your opener. You can set the unit (kg/lbs) in the Tools menu (⚙️).</p><ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-2"><li><strong>Default (Recommended):</strong> Uses pre-defined warm-up tables based on years of coaching experience. This is a reliable and tested method suitable for most lifters.</li><li><strong>Dynamic:</strong> Provides full control over your warm-up progression. This is great for advanced lifters or coaches who want to tailor the warm-up to specific needs.<ul className="list-['-_'] list-inside ml-4 mt-1 text-sm space-y-1"><li><strong># of Sets:</strong> The total number of warm-up sets you want to perform.</li><li><strong>Start Weight:</strong> The weight for your very first warm-up set (usually the empty bar, 20kg).</li><li><strong>Final WU % of Opener:</strong> Sets your last and heaviest warm-up relative to your opening attempt. A common value is 90-95%.</li></ul></li></ul></> },
