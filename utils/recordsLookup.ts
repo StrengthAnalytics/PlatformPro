@@ -55,27 +55,12 @@ function normalizeEquipment(equipment: string): 'equipped' | 'unequipped' | unde
 }
 
 /**
- * Parse weight class to numeric value for comparison
- */
-function parseWeightClass(weightClass: string): number {
-  const match = weightClass.match(/(\d+(?:\.\d+)?)/);
-  return match ? parseFloat(match[1]) : 0;
-}
-
-/**
  * Check if a weight class matches a filter
- * Handles exact matches and "under" comparisons
+ * For records display, we want exact matches only
  */
 function matchesWeightClass(recordClass: string, filterClass: string): boolean {
-  if (recordClass === filterClass) return true;
-
-  // Parse numeric values for comparison
-  const recordWeight = parseWeightClass(recordClass);
-  const filterWeight = parseWeightClass(filterClass);
-
-  // If the record class is the same or lower, it matches
-  // Example: Looking for 83kg records includes 74kg, 83kg, but not 93kg
-  return recordWeight <= filterWeight;
+  // Exact match only - show only records from the specific weight class selected
+  return recordClass === filterClass;
 }
 
 /**
