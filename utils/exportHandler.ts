@@ -199,8 +199,20 @@ export const exportToPDF = (state: AppState): Blob => {
     // --- RECORDS COMPARISON SECTION ---
     const hasRecordsData = details.recordsRegion && details.weightClass && details.recordsAgeCategory && details.recordsEquipment;
 
+    // Debug logging
+    console.log('PDF Export - Records Data Check:', {
+        hasRecordsData,
+        recordsRegion: details.recordsRegion,
+        weightClass: details.weightClass,
+        recordsAgeCategory: details.recordsAgeCategory,
+        recordsEquipment: details.recordsEquipment,
+        gender: details.gender
+    });
+
     if (hasRecordsData) {
         const genderForRecords: 'M' | 'F' | undefined = details.gender === 'male' ? 'M' : details.gender === 'female' ? 'F' : undefined;
+
+        console.log('PDF Export - Gender conversion:', { original: details.gender, converted: genderForRecords });
 
         if (genderForRecords) {
             const recordParams = {
@@ -211,10 +223,19 @@ export const exportToPDF = (state: AppState): Blob => {
                 region: details.recordsRegion!,
             };
 
+            console.log('PDF Export - Looking up records with params:', recordParams);
+
             const squatRecord = findTopRecord({ ...recordParams, lift: 'squat' });
             const benchRecord = findTopRecord({ ...recordParams, lift: 'bench_press' });
             const deadliftRecord = findTopRecord({ ...recordParams, lift: 'deadlift' });
             const totalRecord = findTopRecord({ ...recordParams, lift: 'total' });
+
+            console.log('PDF Export - Records found:', {
+                squat: squatRecord?.record,
+                bench: benchRecord?.record,
+                deadlift: deadliftRecord?.record,
+                total: totalRecord?.record
+            });
 
             const hasAnyRecord = squatRecord || benchRecord || deadliftRecord || totalRecord;
 
@@ -650,7 +671,9 @@ export const exportToMobilePDF = (state: AppState): Blob => {
                     deadlift: 'deadlift',
                 };
 
+                console.log(`Mobile PDF - Looking up ${liftType} record with params:`, recordParams);
                 const liftRecord = findTopRecord({ ...recordParams, lift: liftRecordMap[liftType] });
+                console.log(`Mobile PDF - ${liftType} record found:`, liftRecord?.record);
 
                 if (liftRecord) {
                     doc.setFillColor(239, 246, 255); // blue-50
