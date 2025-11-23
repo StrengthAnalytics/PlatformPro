@@ -32,11 +32,8 @@ interface LiftSectionProps {
   liftState: LiftState;
   unit: 'kg' | 'lbs';
   planAttemptsInLbs: boolean;
-  isCoachingMode: boolean;
   onAttemptChange: (lift: LiftType, attempt: '1' | '2' | '3', value: string) => void;
   onWarmupChange: (lift: LiftType, index: number, field: 'weight' | 'reps', value: string) => void;
-  onCueChange: (lift: LiftType, index: number, value: string) => void;
-  onCoachingNoteChange: (lift: LiftType, value: string) => void;
   onCalculateAttempts: (lift: LiftType) => void;
   onGenerateWarmups: (lift: LiftType) => void;
   onReset: (lift: LiftType) => void;
@@ -54,11 +51,8 @@ const LiftSection: React.FC<LiftSectionProps> = ({
   liftState,
   unit,
   planAttemptsInLbs,
-  isCoachingMode,
   onAttemptChange,
   onWarmupChange,
-  onCueChange,
-  onCoachingNoteChange,
   onCalculateAttempts,
   onGenerateWarmups,
   onReset,
@@ -70,8 +64,7 @@ const LiftSection: React.FC<LiftSectionProps> = ({
   containerClassName,
   autoGenerateWarmups,
 }) => {
-  const { attempts, warmups, cues, error, includeCollars, warmupStrategy, dynamicWarmupSettings, openerForWarmups, coachingNote } = liftState;
-  const [showCues, setShowCues] = useState(false);
+  const { attempts, warmups, error, includeCollars, warmupStrategy, dynamicWarmupSettings, openerForWarmups } = liftState;
   const [isGeneratingWarmups, setIsGeneratingWarmups] = useState(false);
   const prevWarmupsStringRef = useRef(JSON.stringify(warmups));
 

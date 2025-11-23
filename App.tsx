@@ -121,7 +121,6 @@ const App: React.FC = () => {
   const [activeLiftTab, setActiveLiftTab] = useState<LiftType>('squat');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [planAttemptsInLbs, setPlanAttemptsInLbs] = useState(false);
-  const [isCoachingMode, setIsCoachingMode] = useState(false);
   const [autoGenerateWarmups, setAutoGenerateWarmups] = useState(true);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeModalFeature, setUpgradeModalFeature] = useState<{name: string; description?: string}>({name: ''});
@@ -141,11 +140,9 @@ const App: React.FC = () => {
       const savedPersonalBests = localStorage.getItem('plp_personalBests');
       const allPlansRaw = localStorage.getItem('plp_allPlans');
       const savedPlanInLbs = localStorage.getItem('plp_planInLbs');
-      const savedCoachingMode = localStorage.getItem('plp_coachingMode');
       const savedAutoGenerate = localStorage.getItem('plp_autoGenerateWarmups');
 
       if (savedPlanInLbs) setPlanAttemptsInLbs(JSON.parse(savedPlanInLbs));
-      if (savedCoachingMode) setIsCoachingMode(JSON.parse(savedCoachingMode));
       if (savedAutoGenerate) setAutoGenerateWarmups(JSON.parse(savedAutoGenerate));
 
       const details = savedDetails ? JSON.parse(savedDetails) : initialAppState.details;
@@ -246,13 +243,6 @@ const App: React.FC = () => {
     });
   };
 
-  const handleToggleCoachingMode = () => {
-    setIsCoachingMode(prev => {
-        const newState = !prev;
-        localStorage.setItem('plp_coachingMode', JSON.stringify(newState));
-        return newState;
-    });
-  };
   
   const handleToggleAutoGenerateWarmups = () => {
     setAutoGenerateWarmups(prev => {
@@ -475,23 +465,6 @@ const App: React.FC = () => {
         const newGameDayWarmups = [...prev.gameDayState[lift].warmups];
         newGameDayWarmups[index] = {...newGameDayWarmups[index], [field]: value};
         return { ...prev, lifts: { ...prev.lifts, [lift]: { ...prev.lifts[lift], warmups: newLiftsWarmups }}, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], warmups: newGameDayWarmups }}};
-    });
-    setIsDirty(true);
-  };
-
-  const handleCueChange = (lift: LiftType, index: number, value: string) => {
-    setAppState(prev => {
-        const newCues = [...prev.lifts[lift].cues];
-        newCues[index] = value;
-        return { ...prev, lifts: { ...prev.lifts, [lift]: { ...prev.lifts[lift], cues: newCues }}, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], cues: newCues }}};
-    });
-    setIsDirty(true);
-  };
-
-  const handleCoachingNoteChange = (lift: LiftType, value: string) => {
-    setAppState(prev => {
-        const newLiftState = { ...prev.lifts[lift], coachingNote: value };
-        return { ...prev, lifts: { ...prev.lifts, [lift]: newLiftState }, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], coachingNote: value }}};
     });
     setIsDirty(true);
   };
@@ -751,7 +724,7 @@ const App: React.FC = () => {
   const renderMobileScore = () => { if (predictedTotal <= 0) return '--'; if (isNaN(bw) || bw <= 0) return <span className="text-base text-yellow-400">Enter BW</span>; if (!gender) return <span className="text-base text-yellow-400">Select Gender</span>; return score.toFixed(2); };
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
-  const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
+  const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
   const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: IS_FREE_VERSION ? 'PLATFORM LIFTER' : 'PLATFORM COACH' };
 
   return (
@@ -983,7 +956,7 @@ const App: React.FC = () => {
               <main className="flex-1 min-w-0">
                 <CollapsibleSection title="Save & Load Plans" onHelpClick={() => showPopover(helpContent.saveLoad.title, helpContent.saveLoad.content)}><SaveLoadSection currentPlanName={currentPlanName} isDirty={isDirty} savedPlans={savedPlans} feedbackMessage={feedbackMessage} onSelectAndLoadPlan={handleSelectAndLoadPlan} onUpdatePlan={handleUpdatePlan} onOpenSaveAsModal={() => setIsSaveAsModalOpen(true)} onDeletePlan={handleDeletePlan} onExportPlan={handleExportPlan} onImportPlanClick={handlePlannerImportClick} /></CollapsibleSection>
                 <Section title="Lifter Name" onHelpClick={() => showPopover(helpContent.lifterName.title, helpContent.lifterName.content)} headerAction={<button onClick={() => setIsResetModalOpen(true)} className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md shadow-sm transition-colors" aria-label="Clear the entire form">Clear Form</button>}>{renderFormGroup("Lifter Name", "lifterName", "e.g., John Doe", "text")}</Section>
-                <CollapsibleSection title="Competition Details" onHelpClick={() => showPopover(helpContent.details.title, helpContent.details.content)}><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{renderFormGroup("Event Name", "eventName", "e.g., National Championships")}<div className="flex flex-col"><label htmlFor="gender" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Gender</label><select id="gender" value={details.gender} onChange={e => handleDetailChange('gender', e.target.value as 'male' | 'female' | '')} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600"><option value="">Select Gender</option><option value="male">Male</option><option value="female">Female</option></select></div><div className="flex flex-col"><label htmlFor="weightClass" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Weight Class</label><input id="weightClass" type="text" list="ipf-weight-classes" placeholder={details.gender ? "Select or type" : "Select gender first"} value={details.weightClass} onChange={e => handleDetailChange('weightClass', e.target.value)} disabled={!details.gender} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600 dark:placeholder-slate-400 disabled:bg-slate-200 dark:disabled:bg-slate-800"/>{details.gender && details.gender !== '' && <datalist id="ipf-weight-classes">{IPF_WEIGHT_CLASSES[details.gender as 'male' | 'female'].map(wc => <option key={wc} value={wc} />)}</datalist>}</div>{renderFormGroup("Competition Date", "competitionDate", "YYYY-MM-DD", "date")}{renderFormGroup("Weigh-in Time", "weighInTime", "HH:MM", "time")}{renderFormGroup("Weigh-in Body Weight (kg)", "bodyWeight", "e.g., 82.5", "number")}</div></CollapsibleSection>
+                <CollapsibleSection title="Competition Details" onHelpClick={() => showPopover(helpContent.details.title, helpContent.details.content)}><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{renderFormGroup("Event Name", "eventName", "e.g., National Championships")}<div className="flex flex-col"><label htmlFor="gender" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Gender</label><select id="gender" value={details.gender} onChange={e => handleDetailChange('gender', e.target.value as 'male' | 'female' | '')} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600"><option value="">Select Gender</option><option value="male">Male</option><option value="female">Female</option></select></div><div className="flex flex-col"><label htmlFor="weightClass" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Weight Class</label><input id="weightClass" type="text" list="ipf-weight-classes" placeholder={details.gender ? "Select or type" : "Select gender first"} value={details.weightClass} onChange={e => handleDetailChange('weightClass', e.target.value)} disabled={!details.gender} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600 dark:placeholder-slate-400 disabled:bg-slate-200 dark:disabled:bg-slate-800"/>{details.gender && <datalist id="ipf-weight-classes">{IPF_WEIGHT_CLASSES[details.gender].map(wc => <option key={wc} value={wc} />)}</datalist>}</div>{renderFormGroup("Competition Date", "competitionDate", "YYYY-MM-DD", "date")}{renderFormGroup("Weigh-in Time", "weighInTime", "HH:MM", "time")}{renderFormGroup("Weigh-in Body Weight (kg)", "bodyWeight", "e.g., 82.5", "number")}</div></CollapsibleSection>
                 <CollapsibleSection title="Equipment Settings" onHelpClick={() => showPopover(helpContent.equipment.title, helpContent.equipment.content)}><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{renderFormGroup("Squat Rack Height", "squatRackHeight", "e.g., 12")}{renderSelectGroup("Squat Stands", "squatStands", ["In", "Out", "Left In", "Right In"])}{renderFormGroup("Bench Rack Height", "benchRackHeight", "e.g., 8")}{renderSelectGroup("Hand Out", "handOut", ["Self", "Yes"])}{renderFormGroup("Bench Safety Height", "benchSafetyHeight", "e.g., 4")}</div></CollapsibleSection>
                 
                 <div className="rounded-lg shadow-md mb-8">
@@ -1032,7 +1005,7 @@ const App: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                    <LiftSection key={activeLiftTab} containerClassName="p-6 animate-fadeIn" liftType={activeLiftTab} liftState={lifts[activeLiftTab]} unit={details.unit} planAttemptsInLbs={planAttemptsInLbs} isCoachingMode={isCoachingMode} onAttemptChange={handleAttemptChange} onWarmupChange={handleWarmupChange} onCueChange={handleCueChange} onCoachingNoteChange={handleCoachingNoteChange} onCalculateAttempts={handleCalculateAttempts} onGenerateWarmups={handleGenerateWarmups} onReset={handleReset} onCollarToggle={handleCollarToggle} onHelpClick={() => showPopover(helpContent.lifts.title, helpContent.lifts.content)} onWarmupStrategyChange={handleWarmupStrategyChange} onDynamicWarmupSettingsChange={handleDynamicWarmupSettingsChange} onWarmupHelpClick={() => showPopover(helpContent.warmupStrategy.title, helpContent.warmupStrategy.content)} autoGenerateWarmups={autoGenerateWarmups} />
+                    <LiftSection key={activeLiftTab} containerClassName="p-6 animate-fadeIn" liftType={activeLiftTab} liftState={lifts[activeLiftTab]} unit={details.unit} planAttemptsInLbs={planAttemptsInLbs} onAttemptChange={handleAttemptChange} onWarmupChange={handleWarmupChange} onCalculateAttempts={handleCalculateAttempts} onGenerateWarmups={handleGenerateWarmups} onReset={handleReset} onCollarToggle={handleCollarToggle} onHelpClick={() => showPopover(helpContent.lifts.title, helpContent.lifts.content)} onWarmupStrategyChange={handleWarmupStrategyChange} onDynamicWarmupSettingsChange={handleDynamicWarmupSettingsChange} onWarmupHelpClick={() => showPopover(helpContent.warmupStrategy.title, helpContent.warmupStrategy.content)} autoGenerateWarmups={autoGenerateWarmups} />
                   </div>
                 </div>
 

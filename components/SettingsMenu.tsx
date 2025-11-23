@@ -8,8 +8,6 @@ interface SettingsMenuProps {
     isDarkMode: boolean;
     planAttemptsInLbs: boolean;
     onTogglePlanAttemptsInLbs: () => void;
-    isCoachingMode: boolean;
-    onToggleCoachingMode: () => void;
     onSaveSettings: () => void;
     warmupUnit: 'kg' | 'lbs';
     onToggleWarmupUnit: () => void;
@@ -19,15 +17,13 @@ interface SettingsMenuProps {
     onToggleAutoGenerateWarmups: () => void;
 }
 
-const SettingsMenu: React.FC<SettingsMenuProps> = ({ 
-    onBrandingClick, 
-    onToggleDarkMode, 
-    onToolsClick, 
+const SettingsMenu: React.FC<SettingsMenuProps> = ({
+    onBrandingClick,
+    onToggleDarkMode,
+    onToolsClick,
     isDarkMode,
     planAttemptsInLbs,
     onTogglePlanAttemptsInLbs,
-    isCoachingMode,
-    onToggleCoachingMode,
     onSaveSettings,
     warmupUnit,
     onToggleWarmupUnit,
