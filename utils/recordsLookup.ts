@@ -5,28 +5,19 @@
  */
 
 import type { PowerliftingRecord, RecordLookupParams, RecordComparison } from '../types';
+import { getRecordsData } from './recordsData';
 
-// Lazy-load the records data
+// Cache for lazy loading
 let recordsCache: PowerliftingRecord[] | null = null;
 
 /**
  * Get all records (lazy-loaded)
  */
 export function getRecords(): PowerliftingRecord[] {
-  if (recordsCache !== null) {
-    return recordsCache;
-  }
-
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { getRecordsData } = require('./recordsData') as { getRecordsData: () => PowerliftingRecord[] };
+  if (recordsCache === null) {
     recordsCache = getRecordsData();
-    return recordsCache;
-  } catch (error) {
-    console.warn('Records data not available. Run "npm run build:data" to generate records.');
-    recordsCache = [];
-    return recordsCache;
   }
+  return recordsCache;
 }
 
 /**
