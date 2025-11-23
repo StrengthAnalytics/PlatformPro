@@ -30,6 +30,6 @@ export const BENCH_REP_SCHEMES: Record<number, number[]>   = { 3:[8,5,3], 4:[8,5
 export const DEADLIFT_REP_SCHEMES: Record<number, number[]>= { 3:[5,3,2], 4:[5,3,2,1], 5:[5,3,2,1,1], 6:[5,3,2,1,1,1], 7:[5,3,2,1,1,1,1] };
 
 export const IPF_WEIGHT_CLASSES = {
-  male: ['53 kg (Sub-Jr/Jr)', '59 kg', '66 kg', '74 kg', '83 kg', '93 kg', '105 kg', '120 kg', '120+ kg'],
-  female: ['43 kg (Sub-Jr/Jr)', '47 kg', '52 kg', '57 kg', '63 kg', '69 kg', '76 kg', '84 kg', '84+ kg']
+  male: ['53kg (Sub-Jr/Jr)', '59kg', '66kg', '74kg', '83kg', '93kg', '105kg', '120kg', '120+kg'],
+  female: ['43kg (Sub-Jr/Jr)', '47kg', '52kg', '57kg', '63kg', '69kg', '76kg', '84kg', '84+kg']
 };
