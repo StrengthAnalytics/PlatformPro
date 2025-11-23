@@ -26,7 +26,3 @@ Thumbs.db
 # Temporary files
 *.tmp
 .cache/
-
-# Records source data (managed locally, not committed)
-# The generated utils/recordsData.ts WILL be committed for deployment
-data-source/
