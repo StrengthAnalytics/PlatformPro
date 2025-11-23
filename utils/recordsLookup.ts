@@ -87,6 +87,7 @@ function normalizeAgeCategory(category: string): string {
   // Normalize common variations
   const categoryMap: Record<string, string> = {
     OPEN: 'Open',
+    O: 'Open',  // Scottish data uses 'O' for Open
     JUNIOR: 'J',
     JR: 'J',
     'SUB-JUNIOR': 'SJ',
