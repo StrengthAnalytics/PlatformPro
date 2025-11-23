@@ -676,6 +676,35 @@ const App: React.FC = () => {
       </>
     )
   };
+
+  const recordsHelpContent = {
+    title: 'Record Comparison',
+    content: (
+      <>
+        <p className="mb-3">Compare your planned attempts against official powerlifting records to see how you stack up.</p>
+        <div className="space-y-3">
+          <div>
+            <h4 className="font-bold text-slate-800 dark:text-slate-100">How it works:</h4>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Select your region, age category, and equipment type. Your weight class is automatically set from Competition Details. The app will display current records for squat, bench press, deadlift, total, and bench press athletes' choice.</p>
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-800 dark:text-slate-100">Where records appear:</h4>
+            <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1">
+              <li>In the Record Comparison section (main planner)</li>
+              <li>On exported PDF plans (desktop and mobile)</li>
+              <li>In Game Day Mode footer (live record tracking)</li>
+            </ul>
+          </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded p-3">
+            <h4 className="font-bold text-amber-900 dark:text-amber-300 mb-1">Current Data Coverage:</h4>
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              Records data is currently available for <strong>British Powerlifting IPF</strong> lifters only. More federations and regions may be added in the future.
+            </p>
+          </div>
+        </div>
+      </>
+    )
+  };
   
   // --- Render authenticated app ---
   const { details, lifts } = appState;
@@ -1008,7 +1037,11 @@ const App: React.FC = () => {
                 </div>
 
                 <div>
-                    <CollapsibleSection title="Record Comparison" initiallyOpen={false}>
+                    <CollapsibleSection
+                        title="Record Comparison"
+                        initiallyOpen={false}
+                        onHelpClick={() => showPopover(recordsHelpContent.title, recordsHelpContent.content)}
+                    >
                         <RecordsComparisonSection
                             region={details.recordsRegion || ''}
                             weightClass={details.weightClass || ''}
