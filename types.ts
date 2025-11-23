@@ -25,6 +25,9 @@ export interface CompetitionDetails {
   scoringFormula: ScoringFormula;
   unit: 'kg' | 'lbs';
   attemptStrategy: AttemptStrategy;
+  recordsRegion?: string;
+  recordsAgeCategory?: string;
+  recordsEquipment?: 'equipped' | 'unequipped';
 }
 
 export interface EquipmentSettings {
@@ -160,4 +163,32 @@ export interface OneRepMaxExportData {
     reps: string;
     unit: 'kg' | 'lbs';
     results: OneRepMaxResults;
+}
+
+// Powerlifting Records Types
+export interface PowerliftingRecord {
+  region: string;
+  name: string;
+  weightClass: string;
+  gender: 'M' | 'F';
+  lift: 'squat' | 'bench_press' | 'bench_press_ac' | 'deadlift' | 'total';
+  ageCategory: string;
+  record: number;
+  dateSet: string;
+  equipment: 'equipped' | 'unequipped';
+}
+
+export interface RecordLookupParams {
+  gender?: 'M' | 'F';
+  weightClass?: string;
+  lift?: 'squat' | 'bench_press' | 'bench_press_ac' | 'deadlift' | 'total';
+  ageCategory?: string;
+  equipment?: 'equipped' | 'unequipped';
+  region?: string;
+}
+
+export interface RecordComparison {
+  record: PowerliftingRecord;
+  difference: number;
+  percentageOfRecord: number;
 }

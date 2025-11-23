@@ -8,6 +8,7 @@ import LiftSection from './components/LiftSection';
 import SaveLoadSection from './components/SaveLoadSection';
 import BrandingSection from './components/BrandingSection';
 import PersonalBestsSection from './components/PersonalBestsSection';
+import RecordsComparisonSection from './components/RecordsComparisonSection';
 import CollapsibleSection from './components/CollapsibleSection';
 import Popover from './components/Popover';
 import SummarySidebar from './components/SummarySidebar';
@@ -70,15 +71,15 @@ const helpContent = {
     equipment: { title: 'Equipment Settings', content: <p>Note your personal equipment settings here to have everything in one place on meet day. These settings will be listed on your PDF export for quick reference during warm-ups.</p> },
     saveLoad: { title: 'Save & Load Plans', content: <><p className="mb-2">This section allows you to save, load, and delete your competition plans.</p><ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-2"><li><strong>Load Saved Plan:</strong> Select a plan from the dropdown to immediately load it into the editor. Select "-- New Plan --" to start fresh.</li><li><strong>Save Changes:</strong> This button is only active when you've made changes to a loaded plan (indicated by a <span className="text-amber-600 font-bold">*</span>). It updates the current plan.</li><li><strong>Save As...:</strong> Click this to save the current plan (whether new or existing) under a new name. A modal will ask you for a name.</li><li><strong>Delete Current Plan:</strong> This will delete the plan that is currently loaded in the editor.</li><li><strong>Import/Export Plan:</strong> Share your plan with a coach or athlete by exporting it to a `.plp` file. They can then import this file to view and edit the full plan.</li></ul></> },
     branding: { title: 'Branding & Theming', content: <p>Personalize your exported PDF plan. You can upload your own logo (team, gym, or personal) and choose primary and secondary colors for the PDF headers to match your brand. These settings are saved in your browser for future use.</p> },
-    attemptStrategy: { 
-        title: 'Attempt Selection Strategy', 
+    attemptStrategy: {
+        title: 'Attempt Selection Strategy',
         content: (
             <>
                 <p className="mb-3">Choose the strategy for calculating your attempts. This determines the jumps between your opener, second, and third attempts.</p>
                 <div className="space-y-3">
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Aggressive (Default)</h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Maximizes the jumps to aim for the highest possible third attempt. Best for lifters who are confident and performing well.</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">This strategy assumes a lifter would like to open heavier than usual with a smaller overall jump from their opener to their third. (Popular for Bench Press but risky on Deadlifts)</p>
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Stepped</h4>
@@ -86,11 +87,11 @@ const helpContent = {
                     </div>
                     <div>
                         <h4 className="font-bold text-slate-800 dark:text-slate-100">Conservative</h4>
-                        <p className="text-sm text-slate-600 dark:text-slate-400">Uses smaller, safer jumps, prioritizing making lifts over pushing for a max single. Good for securing a total or if feeling off on meet day.</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400">This strategy assumes a lifter would like to open lighter than usual with a larger overall jump from their opener to their third. (Good for beginners or for securing opening lifts)</p>
                     </div>
                 </div>
             </>
-        ) 
+        )
     },
     lifts: { title: 'Lift Attempts & Cues', content: <><p className="mb-2">Plan your competition attempts for this lift:</p><ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-2"><li><strong>Enter an Attempt:</strong> Input either your planned <strong>Opener (1st)</strong> or your goal <strong>3rd Attempt</strong>. You can choose to enter in kg or lbs in the settings menu (⚙️).</li><li><strong>Calculate:</strong> Click to automatically fill in the other two attempts based on the selected 'Attempt Selection Strategy'.</li><li><strong>Add Cues:</strong> A space for personal technical cues that will appear on your PDF.</li></ul><p className="mt-3 text-sm text-slate-500 dark:text-slate-400">All warm-up settings and generation are handled in the "Warm-up Strategy" section below.</p></> },
     warmupStrategy: { title: 'Warm-up Strategy', content: <><p className="mb-2">Choose how your warm-up sets are generated based on your opener. You can set the unit (kg/lbs) in the Tools menu (⚙️).</p><ul className="list-disc list-inside text-slate-600 dark:text-slate-400 space-y-2"><li><strong>Default (Recommended):</strong> Uses pre-defined warm-up tables based on years of coaching experience. This is a reliable and tested method suitable for most lifters.</li><li><strong>Dynamic:</strong> Provides full control over your warm-up progression. This is great for advanced lifters or coaches who want to tailor the warm-up to specific needs.<ul className="list-['-_'] list-inside ml-4 mt-1 text-sm space-y-1"><li><strong># of Sets:</strong> The total number of warm-up sets you want to perform.</li><li><strong>Start Weight:</strong> The weight for your very first warm-up set (usually the empty bar, 20kg).</li><li><strong>Final WU % of Opener:</strong> Sets your last and heaviest warm-up relative to your opening attempt. A common value is 90-95%.</li></ul></li></ul></> },
@@ -120,8 +121,7 @@ const App: React.FC = () => {
   const [activeLiftTab, setActiveLiftTab] = useState<LiftType>('squat');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [planAttemptsInLbs, setPlanAttemptsInLbs] = useState(false);
-  const [isCoachingMode, setIsCoachingMode] = useState(false);
-  const [autoGenerateWarmups, setAutoGenerateWarmups] = useState(false);
+  const [autoGenerateWarmups, setAutoGenerateWarmups] = useState(true);
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false);
   const [upgradeModalFeature, setUpgradeModalFeature] = useState<{name: string; description?: string}>({name: ''});
   const isMobile = useIsMobile();
@@ -140,11 +140,9 @@ const App: React.FC = () => {
       const savedPersonalBests = localStorage.getItem('plp_personalBests');
       const allPlansRaw = localStorage.getItem('plp_allPlans');
       const savedPlanInLbs = localStorage.getItem('plp_planInLbs');
-      const savedCoachingMode = localStorage.getItem('plp_coachingMode');
       const savedAutoGenerate = localStorage.getItem('plp_autoGenerateWarmups');
 
       if (savedPlanInLbs) setPlanAttemptsInLbs(JSON.parse(savedPlanInLbs));
-      if (savedCoachingMode) setIsCoachingMode(JSON.parse(savedCoachingMode));
       if (savedAutoGenerate) setAutoGenerateWarmups(JSON.parse(savedAutoGenerate));
 
       const details = savedDetails ? JSON.parse(savedDetails) : initialAppState.details;
@@ -245,13 +243,6 @@ const App: React.FC = () => {
     });
   };
 
-  const handleToggleCoachingMode = () => {
-    setIsCoachingMode(prev => {
-        const newState = !prev;
-        localStorage.setItem('plp_coachingMode', JSON.stringify(newState));
-        return newState;
-    });
-  };
   
   const handleToggleAutoGenerateWarmups = () => {
     setAutoGenerateWarmups(prev => {
@@ -396,6 +387,30 @@ const App: React.FC = () => {
     setIsDirty(true);
   };
 
+  const handleRecordsRegionChange = (region: string) => {
+    setAppState(prev => ({
+      ...prev,
+      details: { ...prev.details, recordsRegion: region }
+    }));
+    setIsDirty(true);
+  };
+
+  const handleRecordsAgeCategoryChange = (ageCategory: string) => {
+    setAppState(prev => ({
+      ...prev,
+      details: { ...prev.details, recordsAgeCategory: ageCategory }
+    }));
+    setIsDirty(true);
+  };
+
+  const handleRecordsEquipmentChange = (equipment: 'equipped' | 'unequipped') => {
+    setAppState(prev => ({
+      ...prev,
+      details: { ...prev.details, recordsEquipment: equipment }
+    }));
+    setIsDirty(true);
+  };
+
   const handleBrandingChange = (field: keyof BrandingState, value: string) => {
     setAppState(prev => ({ ...prev, branding: { ...prev.branding, [field]: value } }));
   };
@@ -450,23 +465,6 @@ const App: React.FC = () => {
         const newGameDayWarmups = [...prev.gameDayState[lift].warmups];
         newGameDayWarmups[index] = {...newGameDayWarmups[index], [field]: value};
         return { ...prev, lifts: { ...prev.lifts, [lift]: { ...prev.lifts[lift], warmups: newLiftsWarmups }}, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], warmups: newGameDayWarmups }}};
-    });
-    setIsDirty(true);
-  };
-
-  const handleCueChange = (lift: LiftType, index: number, value: string) => {
-    setAppState(prev => {
-        const newCues = [...prev.lifts[lift].cues];
-        newCues[index] = value;
-        return { ...prev, lifts: { ...prev.lifts, [lift]: { ...prev.lifts[lift], cues: newCues }}, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], cues: newCues }}};
-    });
-    setIsDirty(true);
-  };
-
-  const handleCoachingNoteChange = (lift: LiftType, value: string) => {
-    setAppState(prev => {
-        const newLiftState = { ...prev.lifts[lift], coachingNote: value };
-        return { ...prev, lifts: { ...prev.lifts, [lift]: newLiftState }, gameDayState: { ...prev.gameDayState, [lift]: { ...prev.gameDayState[lift], coachingNote: value }}};
     });
     setIsDirty(true);
   };
@@ -651,6 +649,35 @@ const App: React.FC = () => {
       </>
     )
   };
+
+  const recordsHelpContent = {
+    title: 'Record Comparison',
+    content: (
+      <>
+        <p className="mb-3">Compare your planned attempts against official powerlifting records to see how you stack up.</p>
+        <div className="space-y-3">
+          <div>
+            <h4 className="font-bold text-slate-800 dark:text-slate-100">How it works:</h4>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Select your region, age category, and equipment type. Your weight class is automatically set from Competition Details. The app will display current records for the Squat, Bench Press (3 lift), Deadlift, and Bench Press (All Competitions).</p>
+          </div>
+          <div>
+            <h4 className="font-bold text-slate-800 dark:text-slate-100">Where records appear:</h4>
+            <ul className="list-disc list-inside text-sm text-slate-600 dark:text-slate-400 space-y-1">
+              <li>In the Record Comparison section (main planner)</li>
+              <li>On exported PDF plans (desktop and mobile)</li>
+              <li>In Game Day Mode footer (live record tracking)</li>
+            </ul>
+          </div>
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded p-3">
+            <h4 className="font-bold text-amber-900 dark:text-amber-300 mb-1">Current Data Coverage:</h4>
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              Records data is currently available for <strong>British Powerlifting IPF</strong> lifters only. More federations and regions may be added in the future.
+            </p>
+          </div>
+        </div>
+      </>
+    )
+  };
   
   // --- Render authenticated app ---
   const { details, lifts } = appState;
@@ -697,7 +724,7 @@ const App: React.FC = () => {
   const renderMobileScore = () => { if (predictedTotal <= 0) return '--'; if (isNaN(bw) || bw <= 0) return <span className="text-base text-yellow-400">Enter BW</span>; if (!gender) return <span className="text-base text-yellow-400">Select Gender</span>; return score.toFixed(2); };
   if (isGameDayModeActive) return <GameDayMode gameDayState={appState.gameDayState} onGameDayUpdate={handleGameDayUpdate} lifterName={details.lifterName} onExit={() => setIsGameDayModeActive(false)} unit={details.unit} details={details} isBenchOnly={isBenchOnly} />;
   
-  const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, isCoachingMode, onToggleCoachingMode: handleToggleCoachingMode, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
+  const commonSettingsMenuProps = { onBrandingClick: () => setIsBrandingModalOpen(true), onToolsClick: () => setIsToolsModalOpen(true), onToggleDarkMode: handleToggleTheme, isDarkMode: theme === 'dark', planAttemptsInLbs, onTogglePlanAttemptsInLbs: handleTogglePlanAttemptsInLbs, onSaveSettings: handleSaveSettings, warmupUnit: details.unit, onToggleWarmupUnit: handleToggleWarmupUnit, scoringFormula: details.scoringFormula, onScoringFormulaChange: (value: ScoringFormula) => handleDetailChange('scoringFormula', value), autoGenerateWarmups, onToggleAutoGenerateWarmups: handleToggleAutoGenerateWarmups };
   const headerTitles = { planner: 'Powerlifting Meet Planner', oneRepMax: '1RM Calculator', warmupGenerator: 'Warm-up Generator', velocityProfile: 'Velocity Profile Generator', techniqueScore: 'Technique Score Calculator', workoutTimer: 'Workout Timer', pricing: 'Pricing & Plans', homescreen: IS_FREE_VERSION ? 'PLATFORM LIFTER' : 'PLATFORM COACH' };
 
   return (
@@ -929,7 +956,7 @@ const App: React.FC = () => {
               <main className="flex-1 min-w-0">
                 <CollapsibleSection title="Save & Load Plans" onHelpClick={() => showPopover(helpContent.saveLoad.title, helpContent.saveLoad.content)}><SaveLoadSection currentPlanName={currentPlanName} isDirty={isDirty} savedPlans={savedPlans} feedbackMessage={feedbackMessage} onSelectAndLoadPlan={handleSelectAndLoadPlan} onUpdatePlan={handleUpdatePlan} onOpenSaveAsModal={() => setIsSaveAsModalOpen(true)} onDeletePlan={handleDeletePlan} onExportPlan={handleExportPlan} onImportPlanClick={handlePlannerImportClick} /></CollapsibleSection>
                 <Section title="Lifter Name" onHelpClick={() => showPopover(helpContent.lifterName.title, helpContent.lifterName.content)} headerAction={<button onClick={() => setIsResetModalOpen(true)} className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 text-white font-semibold rounded-md shadow-sm transition-colors" aria-label="Clear the entire form">Clear Form</button>}>{renderFormGroup("Lifter Name", "lifterName", "e.g., John Doe", "text")}</Section>
-                <CollapsibleSection title="Competition Details" onHelpClick={() => showPopover(helpContent.details.title, helpContent.details.content)}><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{renderFormGroup("Event Name", "eventName", "e.g., National Championships")}<div className="flex flex-col"><label htmlFor="gender" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Gender</label><select id="gender" value={details.gender} onChange={e => handleDetailChange('gender', e.target.value as 'male' | 'female' | '')} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600"><option value="">Select Gender</option><option value="male">Male</option><option value="female">Female</option></select></div><div className="flex flex-col"><label htmlFor="weightClass" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Weight Class</label><input id="weightClass" type="text" list="ipf-weight-classes" placeholder={details.gender ? "Select or type" : "Select gender first"} value={details.weightClass} onChange={e => handleDetailChange('weightClass', e.target.value)} disabled={!details.gender} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600 dark:placeholder-slate-400 disabled:bg-slate-200 dark:disabled:bg-slate-800"/>{details.gender && <datalist id="ipf-weight-classes">{(IPF_WEIGHT_CLASSES[details.gender] || []).map(wc => <option key={wc} value={wc} />)}</datalist>}</div>{renderFormGroup("Competition Date", "competitionDate", "YYYY-MM-DD", "date")}{renderFormGroup("Weigh-in Time", "weighInTime", "HH:MM", "time")}{renderFormGroup("Weigh-in Body Weight (kg)", "bodyWeight", "e.g., 82.5", "number")}</div></CollapsibleSection>
+                <CollapsibleSection title="Competition Details" onHelpClick={() => showPopover(helpContent.details.title, helpContent.details.content)}><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{renderFormGroup("Event Name", "eventName", "e.g., National Championships")}<div className="flex flex-col"><label htmlFor="gender" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Gender</label><select id="gender" value={details.gender} onChange={e => handleDetailChange('gender', e.target.value as 'male' | 'female' | '')} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600"><option value="">Select Gender</option><option value="male">Male</option><option value="female">Female</option></select></div><div className="flex flex-col"><label htmlFor="weightClass" className="mb-1 text-sm font-medium text-slate-700 dark:text-slate-300 text-center">Weight Class</label><input id="weightClass" type="text" list="ipf-weight-classes" placeholder={details.gender ? "Select or type" : "Select gender first"} value={details.weightClass} onChange={e => handleDetailChange('weightClass', e.target.value)} disabled={!details.gender} className="w-full text-center p-2 border border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 text-slate-900 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600 dark:placeholder-slate-400 disabled:bg-slate-200 dark:disabled:bg-slate-800"/>{details.gender && <datalist id="ipf-weight-classes">{IPF_WEIGHT_CLASSES[details.gender].map(wc => <option key={wc} value={wc} />)}</datalist>}</div>{renderFormGroup("Competition Date", "competitionDate", "YYYY-MM-DD", "date")}{renderFormGroup("Weigh-in Time", "weighInTime", "HH:MM", "time")}{renderFormGroup("Weigh-in Body Weight (kg)", "bodyWeight", "e.g., 82.5", "number")}</div></CollapsibleSection>
                 <CollapsibleSection title="Equipment Settings" onHelpClick={() => showPopover(helpContent.equipment.title, helpContent.equipment.content)}><div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{renderFormGroup("Squat Rack Height", "squatRackHeight", "e.g., 12")}{renderSelectGroup("Squat Stands", "squatStands", ["In", "Out", "Left In", "Right In"])}{renderFormGroup("Bench Rack Height", "benchRackHeight", "e.g., 8")}{renderSelectGroup("Hand Out", "handOut", ["Self", "Yes"])}{renderFormGroup("Bench Safety Height", "benchSafetyHeight", "e.g., 4")}</div></CollapsibleSection>
                 
                 <div className="rounded-lg shadow-md mb-8">
@@ -978,11 +1005,28 @@ const App: React.FC = () => {
                         ))}
                       </div>
                     </div>
-                    <LiftSection key={activeLiftTab} containerClassName="p-6 animate-fadeIn" liftType={activeLiftTab} liftState={lifts[activeLiftTab]} unit={details.unit} planAttemptsInLbs={planAttemptsInLbs} isCoachingMode={isCoachingMode} onAttemptChange={handleAttemptChange} onWarmupChange={handleWarmupChange} onCueChange={handleCueChange} onCoachingNoteChange={handleCoachingNoteChange} onCalculateAttempts={handleCalculateAttempts} onGenerateWarmups={handleGenerateWarmups} onReset={handleReset} onCollarToggle={handleCollarToggle} onHelpClick={() => showPopover(helpContent.lifts.title, helpContent.lifts.content)} onWarmupStrategyChange={handleWarmupStrategyChange} onDynamicWarmupSettingsChange={handleDynamicWarmupSettingsChange} onWarmupHelpClick={() => showPopover(helpContent.warmupStrategy.title, helpContent.warmupStrategy.content)} autoGenerateWarmups={autoGenerateWarmups} />
+                    <LiftSection key={activeLiftTab} containerClassName="p-6 animate-fadeIn" liftType={activeLiftTab} liftState={lifts[activeLiftTab]} unit={details.unit} planAttemptsInLbs={planAttemptsInLbs} onAttemptChange={handleAttemptChange} onWarmupChange={handleWarmupChange} onCalculateAttempts={handleCalculateAttempts} onGenerateWarmups={handleGenerateWarmups} onReset={handleReset} onCollarToggle={handleCollarToggle} onHelpClick={() => showPopover(helpContent.lifts.title, helpContent.lifts.content)} onWarmupStrategyChange={handleWarmupStrategyChange} onDynamicWarmupSettingsChange={handleDynamicWarmupSettingsChange} onWarmupHelpClick={() => showPopover(helpContent.warmupStrategy.title, helpContent.warmupStrategy.content)} autoGenerateWarmups={autoGenerateWarmups} />
                   </div>
                 </div>
 
                 <div>
+                    <CollapsibleSection
+                        title="Record Comparison"
+                        initiallyOpen={false}
+                        onHelpClick={() => showPopover(recordsHelpContent.title, recordsHelpContent.content)}
+                    >
+                        <RecordsComparisonSection
+                            region={details.recordsRegion || ''}
+                            weightClass={details.weightClass || ''}
+                            ageCategory={details.recordsAgeCategory || 'Open'}
+                            equipment={details.recordsEquipment || 'unequipped'}
+                            onRegionChange={handleRecordsRegionChange}
+                            onAgeCategoryChange={handleRecordsAgeCategoryChange}
+                            onEquipmentChange={handleRecordsEquipmentChange}
+                            gender={details.gender}
+                        />
+                    </CollapsibleSection>
+
                     <CollapsibleSection title="Personal Bests" initiallyOpen={false}>
                         <PersonalBestsSection
                             personalBests={appState.personalBests}

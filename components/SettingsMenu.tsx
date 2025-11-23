@@ -8,8 +8,6 @@ interface SettingsMenuProps {
     isDarkMode: boolean;
     planAttemptsInLbs: boolean;
     onTogglePlanAttemptsInLbs: () => void;
-    isCoachingMode: boolean;
-    onToggleCoachingMode: () => void;
     onSaveSettings: () => void;
     warmupUnit: 'kg' | 'lbs';
     onToggleWarmupUnit: () => void;
@@ -19,15 +17,13 @@ interface SettingsMenuProps {
     onToggleAutoGenerateWarmups: () => void;
 }
 
-const SettingsMenu: React.FC<SettingsMenuProps> = ({ 
-    onBrandingClick, 
-    onToggleDarkMode, 
-    onToolsClick, 
+const SettingsMenu: React.FC<SettingsMenuProps> = ({
+    onBrandingClick,
+    onToggleDarkMode,
+    onToolsClick,
     isDarkMode,
     planAttemptsInLbs,
     onTogglePlanAttemptsInLbs,
-    isCoachingMode,
-    onToggleCoachingMode,
     onSaveSettings,
     warmupUnit,
     onToggleWarmupUnit,
@@ -92,18 +88,6 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                                 <option value="dots">DOTS</option>
                                 <option value="wilks">Wilks</option>
                             </select>
-                        </div>
-                        <div className="border-t border-slate-200 dark:border-slate-700"></div>
-                         <div className="px-4 py-3 flex justify-between items-center">
-                            <span className="text-sm text-slate-700 dark:text-slate-200">Coaching Mode</span>
-                            <button
-                                onClick={onToggleCoachingMode}
-                                className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-800 ${isCoachingMode ? 'bg-indigo-600' : 'bg-slate-200'}`}
-                                role="switch"
-                                aria-checked={isCoachingMode}
-                            >
-                                <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${isCoachingMode ? 'translate-x-6' : 'translate-x-1'}`} />
-                            </button>
                         </div>
                         <div className="border-t border-slate-200 dark:border-slate-700"></div>
                         <div className="px-4 py-3 flex justify-between items-center">
