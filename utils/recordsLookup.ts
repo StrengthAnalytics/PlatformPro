@@ -55,14 +55,6 @@ function normalizeEquipment(equipment: string): 'equipped' | 'unequipped' | unde
 }
 
 /**
- * Parse weight class to numeric value for comparison
- */
-function parseWeightClass(weightClass: string): number {
-  const match = weightClass.match(/(\d+(?:\.\d+)?)/);
-  return match ? parseFloat(match[1]) : 0;
-}
-
-/**
  * Check if a weight class matches a filter
  * For records display, we want exact matches only
  */
