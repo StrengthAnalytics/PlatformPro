@@ -8,7 +8,6 @@ interface RecordsComparisonSectionProps {
   ageCategory: string;
   equipment: 'equipped' | 'unequipped';
   onRegionChange: (region: string) => void;
-  onWeightClassChange: (weightClass: string) => void;
   onAgeCategoryChange: (ageCategory: string) => void;
   onEquipmentChange: (equipment: 'equipped' | 'unequipped') => void;
   gender: 'male' | 'female' | '';
@@ -20,20 +19,35 @@ const RecordsComparisonSection: React.FC<RecordsComparisonSectionProps> = ({
   ageCategory,
   equipment,
   onRegionChange,
-  onWeightClassChange,
   onAgeCategoryChange,
   onEquipmentChange,
   gender,
 }) => {
   // Common regions
-  const regions = ['British', 'England', 'Scotland', 'Wales', 'Northern Ireland'];
+  const regions = [
+    'British',
+    'England',
+    'Wales',
+    'Scotland',
+    'Northern Ireland',
+    'Yorkshire & North East',
+    'North West',
+    'North Midlands',
+    'East Midlands',
+    'West Midlands',
+    'Greater London',
+    'South West',
+    'South Midlands',
+    'South East',
+    'British Universities',
+  ];
 
   // Age categories
   const ageCategories = ['Open', 'J', 'U23', 'U18', 'U16', 'SJ', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6'];
 
   // Weight classes (IPF)
-  const maleWeightClasses = ['59kg', '66kg', '74kg', '83kg', '93kg', '105kg', '120kg', '120+kg'];
-  const femaleWeightClasses = ['47kg', '52kg', '57kg', '63kg', '69kg', '76kg', '84kg', '84+kg'];
+  const maleWeightClasses = ['53kg', '59kg', '66kg', '74kg', '83kg', '93kg', '105kg', '120kg', '120+kg'];
+  const femaleWeightClasses = ['43kg', '47kg', '52kg', '57kg', '63kg', '69kg', '76kg', '84kg', '84+kg'];
 
   const weightClasses = gender === 'male' ? maleWeightClasses : gender === 'female' ? femaleWeightClasses : [];
 
@@ -101,16 +115,16 @@ const RecordsComparisonSection: React.FC<RecordsComparisonSectionProps> = ({
         <div>
           <label htmlFor="records-weight-class" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Weight Class
+            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">(from Competition Details)</span>
           </label>
           <select
             id="records-weight-class"
             value={weightClass}
-            onChange={(e) => onWeightClassChange(e.target.value)}
-            className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm focus:border-slate-500 focus:ring-1 focus:ring-slate-500 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-slate-50"
-            disabled={!gender}
+            className="w-full p-2 border border-slate-300 dark:border-slate-600 rounded-md shadow-sm bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-50 cursor-not-allowed opacity-75"
+            disabled
           >
-            <option value="">Select Weight Class</option>
-            {weightClasses.map((wc) => (
+            <option value="">{weightClass || 'Set in Competition Details'}</option>
+            {weightClass && weightClasses.map((wc) => (
               <option key={wc} value={wc}>
                 {wc}
               </option>

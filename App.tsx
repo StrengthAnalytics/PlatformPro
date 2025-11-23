@@ -405,14 +405,6 @@ const App: React.FC = () => {
     setIsDirty(true);
   };
 
-  const handleRecordsWeightClassChange = (weightClass: string) => {
-    setAppState(prev => ({
-      ...prev,
-      details: { ...prev.details, weightClass }
-    }));
-    setIsDirty(true);
-  };
-
   const handleRecordsAgeCategoryChange = (ageCategory: string) => {
     setAppState(prev => ({
       ...prev,
@@ -1023,7 +1015,6 @@ const App: React.FC = () => {
                             ageCategory={details.recordsAgeCategory || 'Open'}
                             equipment={details.recordsEquipment || 'unequipped'}
                             onRegionChange={handleRecordsRegionChange}
-                            onWeightClassChange={handleRecordsWeightClassChange}
                             onAgeCategoryChange={handleRecordsAgeCategoryChange}
                             onEquipmentChange={handleRecordsEquipmentChange}
                             gender={details.gender}
