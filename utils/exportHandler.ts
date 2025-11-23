@@ -196,148 +196,157 @@ export const exportToPDF = (state: AppState): Blob => {
 
     yPos = currentY; // Set Y to be after the details section
 
-    // --- RECORDS COMPARISON SECTION ---
-    const hasRecordsData = details.recordsRegion && details.weightClass && details.recordsAgeCategory && details.recordsEquipment;
-
-    // Debug logging
-    console.log('PDF Export - Records Data Check:', {
-        hasRecordsData,
-        recordsRegion: details.recordsRegion,
-        weightClass: details.weightClass,
-        recordsAgeCategory: details.recordsAgeCategory,
-        recordsEquipment: details.recordsEquipment,
-        gender: details.gender
-    });
-
-    if (hasRecordsData) {
-        const genderForRecords: 'M' | 'F' | undefined = details.gender === 'male' ? 'M' : details.gender === 'female' ? 'F' : undefined;
-
-        console.log('PDF Export - Gender conversion:', { original: details.gender, converted: genderForRecords });
-
-        if (genderForRecords) {
-            const recordParams = {
-                gender: genderForRecords as 'M' | 'F',
-                weightClass: details.weightClass,
-                ageCategory: details.recordsAgeCategory!,
-                equipment: details.recordsEquipment!,
-                region: details.recordsRegion!,
-            };
-
-            console.log('PDF Export - Looking up records with params:', recordParams);
-
-            const squatRecord = findTopRecord({ ...recordParams, lift: 'squat' });
-            const benchRecord = findTopRecord({ ...recordParams, lift: 'bench_press' });
-            const deadliftRecord = findTopRecord({ ...recordParams, lift: 'deadlift' });
-            const totalRecord = findTopRecord({ ...recordParams, lift: 'total' });
-
-            console.log('PDF Export - Records found:', {
-                squat: squatRecord?.record,
-                bench: benchRecord?.record,
-                deadlift: deadliftRecord?.record,
-                total: totalRecord?.record
-            });
-
-            const hasAnyRecord = squatRecord || benchRecord || deadliftRecord || totalRecord;
-
-            if (hasAnyRecord) {
-                yPos += 4;
-                doc.setFontSize(14);
-                doc.setTextColor(17, 24, 39);
-                doc.text(`${details.recordsRegion} Records - ${details.recordsAgeCategory} ${details.recordsEquipment}`, margin, yPos);
-                yPos += 5;
-                doc.setDrawColor(203, 213, 225);
-                doc.line(margin, yPos, margin + contentWidth, yPos);
-                yPos += 6;
-
-                doc.setFontSize(9);
-                doc.setTextColor(48, 48, 48);
-                const recRowHeight = 6;
-                let recY = yPos;
-                const recCol1 = margin + 2;
-                const recCol2 = margin + 35;
-                const recCol3 = margin + 70;
-
-                const recordsData = [
-                    { lift: 'Squat', record: squatRecord },
-                    { lift: 'Bench', record: benchRecord },
-                    { lift: 'Deadlift', record: deadliftRecord },
-                    { lift: 'Total', record: totalRecord },
-                ];
-
-                recordsData.forEach((rec, index) => {
-                    if (rec.record) {
-                        if (index % 2 === 1) {
-                            doc.setFillColor(248, 250, 252);
-                            doc.rect(margin, recY - 4, contentWidth, recRowHeight, 'F');
-                        }
-
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(`${rec.lift}:`, recCol1, recY);
-                        doc.setFont('helvetica', 'normal');
-                        doc.text(`${rec.record.record} kg`, recCol2, recY);
-                        doc.setFont('helvetica', 'italic');
-                        doc.setFontSize(8);
-                        doc.text(rec.record.name, recCol3, recY);
-                        doc.setFontSize(9);
-
-                        recY += recRowHeight;
-                    }
-                });
-
-                yPos = recY + 2;
-            }
-        }
-    }
-
-    // --- PERSONAL BESTS SECTION ---
+    // --- PERSONAL BESTS & RECORDS SECTION (SIDE-BY-SIDE) ---
+    // Check if we have any PB data (weight only, date optional)
     const hasPBData = personalBests && (
-        (personalBests.squat?.weight && personalBests.squat?.date) ||
-        (personalBests.bench?.weight && personalBests.bench?.date) ||
-        (personalBests.deadlift?.weight && personalBests.deadlift?.date)
+        personalBests.squat?.weight ||
+        personalBests.bench?.weight ||
+        personalBests.deadlift?.weight
     );
 
-    if (hasPBData) {
+    // Check if we have records data
+    const hasRecordsData = details.recordsRegion && details.weightClass && details.recordsAgeCategory && details.recordsEquipment;
+    const genderForRecords: 'M' | 'F' | undefined = details.gender === 'male' ? 'M' : details.gender === 'female' ? 'F' : undefined;
+
+    let squatRecord, benchRecord, deadliftRecord, totalRecord;
+    let hasAnyRecord = false;
+
+    if (hasRecordsData && genderForRecords) {
+        const recordParams = {
+            gender: genderForRecords as 'M' | 'F',
+            weightClass: details.weightClass,
+            ageCategory: details.recordsAgeCategory!,
+            equipment: details.recordsEquipment!,
+            region: details.recordsRegion!,
+        };
+
+        squatRecord = findTopRecord({ ...recordParams, lift: 'squat' });
+        benchRecord = findTopRecord({ ...recordParams, lift: 'bench_press' });
+        deadliftRecord = findTopRecord({ ...recordParams, lift: 'deadlift' });
+        totalRecord = findTopRecord({ ...recordParams, lift: 'total' });
+
+        hasAnyRecord = !!(squatRecord || benchRecord || deadliftRecord || totalRecord);
+    }
+
+    // Only show the section if we have either PBs or Records
+    if (hasPBData || hasAnyRecord) {
         yPos += 4;
+
+        // Section header
         doc.setFontSize(14);
         doc.setTextColor(17, 24, 39);
-        doc.text('Personal Bests', margin, yPos);
+
+        if (hasPBData && hasAnyRecord) {
+            doc.text('Personal Bests & Records', margin, yPos);
+        } else if (hasPBData) {
+            doc.text('Personal Bests', margin, yPos);
+        } else {
+            doc.text('Records', margin, yPos);
+        }
+
         yPos += 5;
         doc.setDrawColor(203, 213, 225);
         doc.line(margin, yPos, margin + contentWidth, yPos);
         yPos += 6;
 
-        doc.setFontSize(10);
-        doc.setTextColor(48, 48, 48);
-        const pbRowHeight = 7;
+        const pbCol1X = margin;
+        const pbColWidth = contentWidth / 2 - 2.5;
+        const recCol1X = margin + contentWidth / 2 + 2.5;
+        const recColWidth = contentWidth / 2 - 2.5;
+
         let pbY = yPos;
-        const pbCol1 = margin + 2;
-        const pbCol2 = margin + 40;
-        const pbCol3 = margin + 110;
+        let recY = yPos;
 
-        const pbData = [
-            { lift: 'Squat', weight: personalBests.squat?.weight, date: personalBests.squat?.date },
-            { lift: 'Bench', weight: personalBests.bench?.weight, date: personalBests.bench?.date },
-            { lift: 'Deadlift', weight: personalBests.deadlift?.weight, date: personalBests.deadlift?.date },
-        ];
+        // --- LEFT COLUMN: PERSONAL BESTS ---
+        if (hasPBData) {
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(17, 24, 39);
+            doc.text('Personal Bests', pbCol1X + 2, pbY);
+            pbY += 6;
 
-        pbData.forEach((pb, index) => {
-            if (pb.weight && pb.date) {
-                if (index % 2 === 1) {
-                    doc.setFillColor(248, 250, 252);
-                    doc.rect(margin, pbY - 4.5, contentWidth, pbRowHeight, 'F');
+            doc.setFontSize(9);
+            doc.setTextColor(48, 48, 48);
+            const pbRowHeight = 6;
+
+            const pbData = [
+                { lift: 'Squat', weight: personalBests.squat?.weight, date: personalBests.squat?.date },
+                { lift: 'Bench', weight: personalBests.bench?.weight, date: personalBests.bench?.date },
+                { lift: 'Deadlift', weight: personalBests.deadlift?.weight, date: personalBests.deadlift?.date },
+            ];
+
+            pbData.forEach((pb, index) => {
+                if (pb.weight) {
+                    if (index % 2 === 1) {
+                        doc.setFillColor(248, 250, 252);
+                        doc.rect(pbCol1X, pbY - 4, pbColWidth, pbRowHeight, 'F');
+                    }
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`${pb.lift}:`, pbCol1X + 2, pbY);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`${pb.weight} ${unit}`, pbCol1X + 20, pbY);
+
+                    // Show date if available, otherwise show nothing
+                    if (pb.date) {
+                        doc.setFontSize(8);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text(formatPBDate(pb.date, details.competitionDate), pbCol1X + 40, pbY);
+                        doc.setFontSize(9);
+                        doc.setTextColor(48, 48, 48);
+                    }
+
+                    pbY += pbRowHeight;
                 }
+            });
+        }
 
-                doc.setFont('helvetica', 'bold');
-                doc.text(`${pb.lift}:`, pbCol1, pbY);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`${pb.weight} ${unit}`, pbCol2, pbY);
-                doc.text(formatPBDate(pb.date, details.competitionDate), pbCol3, pbY);
+        // --- RIGHT COLUMN: RECORDS ---
+        if (hasAnyRecord) {
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(17, 24, 39);
+            doc.text(`${details.recordsRegion} Records`, recCol1X + 2, recY);
+            doc.setFontSize(8);
+            doc.setTextColor(100, 116, 139);
+            doc.text(`${details.recordsAgeCategory} ${details.recordsEquipment}`, recCol1X + 2, recY + 4);
+            recY += 8;
 
-                pbY += pbRowHeight;
-            }
-        });
+            doc.setFontSize(9);
+            doc.setTextColor(48, 48, 48);
+            const recRowHeight = 6;
 
-        yPos = pbY + 2;
+            const recordsData = [
+                { lift: 'Squat', record: squatRecord },
+                { lift: 'Bench', record: benchRecord },
+                { lift: 'Deadlift', record: deadliftRecord },
+                { lift: 'Total', record: totalRecord },
+            ];
+
+            recordsData.forEach((rec, index) => {
+                if (rec.record) {
+                    if (index % 2 === 1) {
+                        doc.setFillColor(248, 250, 252);
+                        doc.rect(recCol1X, recY - 4, recColWidth, recRowHeight, 'F');
+                    }
+
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(`${rec.lift}:`, recCol1X + 2, recY);
+                    doc.setFont('helvetica', 'normal');
+                    doc.text(`${rec.record.record} kg`, recCol1X + 20, recY);
+                    doc.setFont('helvetica', 'italic');
+                    doc.setFontSize(7);
+                    doc.setTextColor(100, 116, 139);
+                    doc.text(rec.record.name, recCol1X + 38, recY);
+                    doc.setFontSize(9);
+                    doc.setTextColor(48, 48, 48);
+
+                    recY += recRowHeight;
+                }
+            });
+        }
+
+        yPos = Math.max(pbY, recY) + 2;
     }
 
     // --- LIFT SECTION DRAWING FUNCTION ---
@@ -627,9 +636,9 @@ export const exportToMobilePDF = (state: AppState): Blob => {
 
         const cbSize = 8;
 
-        // Personal Best Section (if available)
+        // Personal Best Section (if available - weight only, date optional)
         const pb = personalBests?.[liftType];
-        if (pb?.weight && pb?.date) {
+        if (pb?.weight) {
             doc.setFillColor(249, 250, 251); // slate-50
             doc.rect(margin, pageY - 6, contentWidth, 18, 'F');
 
@@ -643,11 +652,14 @@ export const exportToMobilePDF = (state: AppState): Blob => {
             doc.setFontSize(16);
             doc.text(`${pb.weight} ${unit}`, margin + 50, pageY + 3);
 
-            const dateText = formatPBDate(pb.date, details.competitionDate);
-            doc.setTextColor(71, 85, 105); // slate-600
-            doc.setFont('helvetica', 'normal');
-            doc.setFontSize(13);
-            doc.text(dateText, margin + 50, pageY + 10);
+            // Show date if available
+            if (pb.date) {
+                const dateText = formatPBDate(pb.date, details.competitionDate);
+                doc.setTextColor(71, 85, 105); // slate-600
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(13);
+                doc.text(dateText, margin + 50, pageY + 10);
+            }
 
             pageY += 18 + 8;
         }
