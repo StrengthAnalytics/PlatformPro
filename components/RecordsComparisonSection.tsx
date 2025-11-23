@@ -168,22 +168,22 @@ const RecordsComparisonSection: React.FC<RecordsComparisonSectionProps> = ({
 
       {/* Records Display */}
       {records && region && weightClass && ageCategory && (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 mt-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 mt-6">
           {lifts.map(({ key, label, record }) => (
             <div
               key={key}
-              className="border border-slate-200 dark:border-slate-600 rounded-lg p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"
+              className="border border-slate-200 dark:border-slate-600 rounded-lg p-3 md:p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20"
             >
-              <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              <h4 className="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1 md:mb-2">
                 {label}
               </h4>
 
               {record ? (
-                <div className="space-y-1">
-                  <div className="text-2xl font-bold text-blue-900 dark:text-blue-200">
+                <div className="space-y-0.5 md:space-y-1">
+                  <div className="text-xl md:text-2xl font-bold text-blue-900 dark:text-blue-200">
                     {record.record}kg
                   </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400">
+                  <div className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">
                     {record.name}
                   </div>
                   <div className="text-xs text-slate-500 dark:text-slate-500">
@@ -195,7 +195,7 @@ const RecordsComparisonSection: React.FC<RecordsComparisonSectionProps> = ({
                   </div>
                 </div>
               ) : (
-                <div className="text-sm text-slate-500 dark:text-slate-400 italic">
+                <div className="text-xs md:text-sm text-slate-500 dark:text-slate-400 italic">
                   No record found
                 </div>
               )}
