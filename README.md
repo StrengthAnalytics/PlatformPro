@@ -104,11 +104,17 @@ The flagship tool for creating detailed, strategic powerlifting meet plans. It o
         -   `Conservative`: Uses smaller, safer jumps to prioritize securing a total.
     -   **Units**: A global setting allows users to *plan* their attempts in LBS. The values are converted to KG in the background, as KG is the standard for competition.
 -   **Warm-up Generation**:
-    -   **Logic**: Triggered automatically when an opener is entered or calculated (if "Auto-Generate" is enabled), or manually via a button. The `generateWarmups` utility is used.
+    -   **Logic**: Triggered automatically when an opener is entered or calculated (Auto-Generate is enabled by default). The `generateWarmups` utility is used.
     -   **Strategies**:
         -   `Default (Recommended)`: Uses a comprehensive set of pre-defined, battle-tested warm-up tables (`SQUAT_WARMUPS`, etc.) based on the opener.
         -   `Dynamic`: Allows for a custom warm-up progression based on the number of sets, a starting weight, and the percentage of the opener for the final warm-up.
     -   **Units**: A global setting allows warm-up weights to be displayed in either KG or LBS.
+-   **Records Comparison**:
+    -   **Data Source**: Powerlifting records from British Powerlifting (IPF) federations
+    -   **Features**: Compare planned attempts against official records for squat, bench press, deadlift, total, and bench press all competitions
+    -   **Filters**: Select region (British, England, Wales, Scotland, regional), weight class (auto-populated from Competition Details), age category (Open, Junior, Masters, etc.), and equipment (equipped/unequipped)
+    -   **Display**: Records shown in planner, PDF exports (desktop and mobile), and Game Day Mode footer
+    -   **Data Management**: JSON source files compiled to TypeScript via `npm run build:data` for client-side performance
 -   **Game Day Mode**:
     -   A simplified, high-contrast, full-screen UI designed for use during a competition.
     -   Allows users to check off completed warm-ups.
@@ -262,12 +268,18 @@ export function useSubscription(): SubscriptionData {
 
 -   `/components`: Contains all reusable React components.
     -   `UpgradeModal.tsx`: Modal shown to free users when accessing premium features
+    -   `RecordsComparisonSection.tsx`: Records lookup and display component
 -   `/hooks`: Custom React hooks
     -   `useSubscription.ts`: Manages subscription state with conditional Clerk integration
 -   `/utils`: Contains core business logic, calculations, and utility functions.
     -   `calculator.ts`: The brain of the application. Contains all mathematical logic for attempt calculation, warm-up generation, scoring, and plate breakdowns.
-    -   `exportHandler.ts`: Manages the creation of all downloadable files (PDF, CSV, `.plp`).
+    -   `exportHandler.ts`: Manages the creation of all downloadable files (PDF, CSV, `.plp`). Includes records data in PDF exports.
     -   `migration.ts`: Handles state versioning, ensuring that data stored in `localStorage` from older versions of the app can be safely upgraded to the latest structure.
+    -   `recordsLookup.ts`: Query utilities for powerlifting records data with format normalization
+    -   `recordsData.ts`: Generated file containing compiled records data (not manually edited)
+-   `/data-source`: JSON source files for powerlifting records (gitignored, managed locally)
+-   `/scripts`: Build utilities
+    -   `build-records.cjs`: Compiles JSON records into TypeScript for deployment
 -   `config.ts`: Centralized environment-based configuration for features, branding, and behavior.
 -   `App.tsx`: The root component that manages state and orchestrates the entire application.
 -   `state.ts`: Defines the initial shape and default values for the application state.
@@ -285,7 +297,11 @@ The project is set up using Vite. To run the development server:
     -   For free version: `cp .env.example.free .env`
     -   For paid version: `cp .env.example.paid .env`
 3.  Add your Clerk key (paid version only): Edit `.env` and add your `VITE_CLERK_PUBLISHABLE_KEY`
-4.  Start the server: `npm run dev`
+4.  (Optional) Build records data: `npm run build:data`
+    -   Only needed if you've updated JSON files in `data-source/`
+    -   Generates `utils/recordsData.ts` from JSON source files
+    -   This file is committed to the repository for deployment
+5.  Start the server: `npm run dev`
 
 ### 5.2. Testing Both Versions Locally
 
