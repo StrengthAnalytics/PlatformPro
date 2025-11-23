@@ -115,7 +115,6 @@ const RecordsComparisonSection: React.FC<RecordsComparisonSectionProps> = ({
         <div>
           <label htmlFor="records-weight-class" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
             Weight Class
-            <span className="text-xs text-slate-500 dark:text-slate-400 ml-1">(from Competition Details)</span>
           </label>
           <select
             id="records-weight-class"

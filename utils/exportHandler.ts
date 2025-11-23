@@ -115,31 +115,31 @@ export const exportToPDF = (state: AppState): Blob => {
 
     // --- MAIN HEADER ---
     doc.setFillColor(primaryColor);
-    doc.rect(margin, yPos, contentWidth, 16, 'F');
-    doc.setFontSize(20);
+    doc.rect(margin, yPos, contentWidth, 14, 'F');
+    doc.setFontSize(18);
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'bold');
-    
+
     if (branding.logo) {
         const imgType = branding.logo.startsWith('data:image/png') ? 'PNG' : 'JPEG';
-        doc.addImage(branding.logo, imgType, margin + 2, yPos + 2, 12, 12);
-        doc.text('POWERLIFTING MEET PLAN', margin + 18, yPos + 10, { align: 'left' });
+        doc.addImage(branding.logo, imgType, margin + 2, yPos + 2, 10, 10);
+        doc.text('POWERLIFTING MEET PLAN', margin + 15, yPos + 9, { align: 'left' });
     } else {
-        doc.text('POWERLIFTING MEET PLAN', pageWidth / 2, yPos + 10, { align: 'center' });
+        doc.text('POWERLIFTING MEET PLAN', pageWidth / 2, yPos + 9, { align: 'center' });
     }
 
-    yPos += 16 + 6;
+    yPos += 14 + 4;
 
     // --- DETAILS & EQUIPMENT SECTION ---
-    doc.setFontSize(14);
+    doc.setFontSize(12);
     doc.setTextColor(17, 24, 39);
     doc.text('Competition & Equipment Details', margin, yPos);
-    yPos += 5;
+    yPos += 4;
     doc.setDrawColor(203, 213, 225); // slate-300
     doc.line(margin, yPos, margin + contentWidth, yPos);
     yPos += 2;
 
-    doc.setFontSize(10);
+    doc.setFontSize(9);
     doc.setTextColor(48, 48, 48);
     const detailCol1 = margin;
     const detailCol2 = margin + 95;
@@ -230,10 +230,10 @@ export const exportToPDF = (state: AppState): Blob => {
 
     // Only show the section if we have either PBs or Records
     if (hasPBData || hasAnyRecord) {
-        yPos += 4;
+        yPos += 3;
 
         // Section header
-        doc.setFontSize(14);
+        doc.setFontSize(12);
         doc.setTextColor(17, 24, 39);
 
         if (hasPBData && hasAnyRecord) {
@@ -244,10 +244,10 @@ export const exportToPDF = (state: AppState): Blob => {
             doc.text('Records', margin, yPos);
         }
 
-        yPos += 5;
+        yPos += 4;
         doc.setDrawColor(203, 213, 225);
         doc.line(margin, yPos, margin + contentWidth, yPos);
-        yPos += 6;
+        yPos += 5;
 
         const pbCol1X = margin;
         const pbColWidth = contentWidth / 2 - 2.5;
@@ -259,15 +259,15 @@ export const exportToPDF = (state: AppState): Blob => {
 
         // --- LEFT COLUMN: PERSONAL BESTS ---
         if (hasPBData) {
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(17, 24, 39);
             doc.text('Personal Bests', pbCol1X + 2, pbY);
-            pbY += 6;
+            pbY += 5;
 
-            doc.setFontSize(9);
+            doc.setFontSize(8);
             doc.setTextColor(48, 48, 48);
-            const pbRowHeight = 6;
+            const pbRowHeight = 5;
 
             const pbData = [
                 { lift: 'Squat', weight: personalBests.squat?.weight, date: personalBests.squat?.date },
@@ -289,10 +289,10 @@ export const exportToPDF = (state: AppState): Blob => {
 
                     // Show date if available, otherwise show nothing
                     if (pb.date) {
-                        doc.setFontSize(8);
+                        doc.setFontSize(7);
                         doc.setTextColor(100, 116, 139);
                         doc.text(formatPBDate(pb.date, details.competitionDate), pbCol1X + 40, pbY);
-                        doc.setFontSize(9);
+                        doc.setFontSize(8);
                         doc.setTextColor(48, 48, 48);
                     }
 
@@ -303,18 +303,18 @@ export const exportToPDF = (state: AppState): Blob => {
 
         // --- RIGHT COLUMN: RECORDS ---
         if (hasAnyRecord) {
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(17, 24, 39);
             doc.text(`${details.recordsRegion} Records`, recCol1X + 2, recY);
-            doc.setFontSize(8);
+            doc.setFontSize(7);
             doc.setTextColor(100, 116, 139);
-            doc.text(`${details.recordsAgeCategory} ${details.recordsEquipment}`, recCol1X + 2, recY + 4);
-            recY += 8;
+            doc.text(`${details.recordsAgeCategory} ${details.recordsEquipment}`, recCol1X + 2, recY + 3.5);
+            recY += 7;
 
-            doc.setFontSize(9);
+            doc.setFontSize(8);
             doc.setTextColor(48, 48, 48);
-            const recRowHeight = 6;
+            const recRowHeight = 5;
 
             const recordsData = [
                 { lift: 'Squat', record: squatRecord },
@@ -335,10 +335,10 @@ export const exportToPDF = (state: AppState): Blob => {
                     doc.setFont('helvetica', 'normal');
                     doc.text(`${rec.record.record} kg`, recCol1X + 20, recY);
                     doc.setFont('helvetica', 'italic');
-                    doc.setFontSize(7);
+                    doc.setFontSize(6);
                     doc.setTextColor(100, 116, 139);
                     doc.text(rec.record.name, recCol1X + 38, recY);
-                    doc.setFontSize(9);
+                    doc.setFontSize(8);
                     doc.setTextColor(48, 48, 48);
 
                     recY += recRowHeight;
@@ -355,12 +355,12 @@ export const exportToPDF = (state: AppState): Blob => {
         
         // Lift Header
         doc.setFillColor(secondaryColor);
-        doc.rect(margin, yPos, contentWidth, 9, 'F');
-        doc.setFontSize(14);
+        doc.rect(margin, yPos, contentWidth, 8, 'F');
+        doc.setFontSize(12);
         doc.setTextColor(255, 255, 255);
         doc.setFont('helvetica', 'bold');
-        doc.text(liftName.toUpperCase(), margin + 5, yPos + 6.5);
-        yPos += 9 + 4;
+        doc.text(liftName.toUpperCase(), margin + 5, yPos + 5.5);
+        yPos += 8 + 3;
 
         // Attempts & Warmups side-by-side
         const attemptsWidth = 60;
@@ -369,60 +369,60 @@ export const exportToPDF = (state: AppState): Blob => {
         const warmupsX = margin + attemptsWidth + 5;
         let attemptsY = yPos;
         let warmupsY = yPos;
-        const cbSize = 4; // Checkbox size
+        const cbSize = 3.5; // Checkbox size
 
         // Draw Attempts Box
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(17, 24, 39);
         doc.text('Attempts (kg)', attemptsX, attemptsY);
-        attemptsY += 5;
+        attemptsY += 4.5;
 
         const attempts: Array<{key: '1' | '2' | '3', label: string}> = [
             { key: '1', label: 'Opener' }, { key: '2', label: 'Second' }, { key: '3', label: 'Third' },
         ];
-        
+
         attempts.forEach((attempt, index) => {
             if (index % 2 === 1) {
                 doc.setFillColor(248, 250, 252); // slate-50
-                doc.rect(attemptsX, attemptsY - 4, attemptsWidth, 6, 'F');
+                doc.rect(attemptsX, attemptsY - 3.5, attemptsWidth, 5.5, 'F');
             }
-            
+
             // Add checkbox
             const attemptCb = new (doc as any).AcroForm.CheckBox();
             attemptCb.fieldName = `${liftType}-attempt-${index}`;
-            attemptCb.Rect = [attemptsX, attemptsY - 3.5, cbSize, cbSize];
+            attemptCb.Rect = [attemptsX, attemptsY - 3, cbSize, cbSize];
             attemptCb.V = '/Off'; // Set Value to Off
             attemptCb.AS = '/Off'; // Set Appearance State to Off
             doc.addField(attemptCb);
 
-            doc.setFontSize(11);
+            doc.setFontSize(9.5);
             doc.setTextColor(48, 48, 48);
             doc.setFont('helvetica', 'normal');
             doc.text(`${attempt.label}:`, attemptsX + cbSize + 2, attemptsY);
             doc.setFont('helvetica', 'bold');
             doc.text(`${liftData.attempts[attempt.key] || '___'} kg`, attemptsX + attemptsWidth - 2, attemptsY, { align: 'right' });
-            attemptsY += 6;
+            attemptsY += 5.5;
         });
 
         // Draw Warmups Box
         const populatedWarmups = liftData.warmups.filter(w => w.weight && w.reps);
         if (populatedWarmups.length > 0) {
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(17, 24, 39);
             doc.text('Warm-ups', warmupsX, warmupsY);
             if (unit === 'kg' && liftData.includeCollars) {
-                doc.setFontSize(8);
+                doc.setFontSize(7);
                 doc.setTextColor(100, 116, 139);
                 doc.text('(w/ 5kg collars)', warmupsX + 22, warmupsY);
             }
-            warmupsY += 5;
+            warmupsY += 4.5;
 
             // Header
             doc.setFillColor(241, 245, 249); // slate-100
-            doc.rect(warmupsX, warmupsY - 3, warmupsWidth, 5, 'F');
-            doc.setFontSize(9);
+            doc.rect(warmupsX, warmupsY - 3, warmupsWidth, 4.5, 'F');
+            doc.setFontSize(8);
             doc.setTextColor(100, 116, 139); // slate-500
             doc.setFont('helvetica', 'bold');
             const weightColX = warmupsX + cbSize + 4;
@@ -431,7 +431,7 @@ export const exportToPDF = (state: AppState): Blob => {
             doc.text(`Weight (${unit})`, weightColX, warmupsY);
             doc.text('Reps', repsColX, warmupsY);
             doc.text('Plate Loading (per side)', loadingColX, warmupsY);
-            warmupsY += 5;
+            warmupsY += 4.5;
 
             // Rows
             populatedWarmups.forEach((set, index) => {
@@ -439,75 +439,35 @@ export const exportToPDF = (state: AppState): Blob => {
                 const plateBreakdown = unit === 'lbs'
                     ? !isNaN(weight) ? getLbsPlateBreakdown(weight) : ''
                     : !isNaN(weight) ? getPlateBreakdown(weight, liftData.includeCollars) : '';
-                
+
                 if (index % 2 === 1) {
                     doc.setFillColor(248, 250, 252); // slate-50
-                    doc.rect(warmupsX, warmupsY - 4, warmupsWidth, 6, 'F');
+                    doc.rect(warmupsX, warmupsY - 3.5, warmupsWidth, 5.5, 'F');
                 }
-                
+
                 // Add checkbox
                 const warmupCb = new (doc as any).AcroForm.CheckBox();
                 warmupCb.fieldName = `${liftType}-warmup-${index}`;
-                warmupCb.Rect = [warmupsX, warmupsY - 3.5, cbSize, cbSize];
+                warmupCb.Rect = [warmupsX, warmupsY - 3, cbSize, cbSize];
                 warmupCb.V = '/Off'; // Set Value to Off
                 warmupCb.AS = '/Off'; // Set Appearance State to Off
                 doc.addField(warmupCb);
 
-                doc.setFontSize(10);
+                doc.setFontSize(9);
                 doc.setTextColor(48, 48, 48);
                 doc.setFont('helvetica', 'normal');
                 doc.text(`${set.weight} ${unit}`, weightColX, warmupsY);
                 doc.text(`x ${set.reps}`, repsColX, warmupsY);
-                
-                const plateFontSize = plateBreakdown.length > 20 ? 8 : 9;
+
+                const plateFontSize = plateBreakdown.length > 20 ? 7 : 8;
                 doc.setFontSize(plateFontSize);
                 doc.text(plateBreakdown, loadingColX, warmupsY);
-                
-                warmupsY += 6;
-            });
-        }
-        
-        const populatedCues = liftData.cues.filter(c => c.trim() !== '');
-        if (populatedCues.length > 0) {
-            warmupsY += 4; // Add a little space
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(17, 24, 39);
-            doc.text('Technical Cues:', warmupsX, warmupsY);
-            warmupsY += 5;
 
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(48, 48, 48);
-            populatedCues.forEach(cue => {
-                doc.text(`• ${cue}`, warmupsX + 2, warmupsY);
-                warmupsY += 5;
+                warmupsY += 5.5;
             });
         }
 
-        if (liftData.coachingNote) {
-            warmupsY += 4; // Add a little space
-            
-            doc.setFontSize(10);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(180, 83, 9); // amber-700
-            doc.text('Coaching Note:', warmupsX, warmupsY);
-            warmupsY += 5;
-
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(48, 48, 48);
-            const noteLines = doc.splitTextToSize(liftData.coachingNote, warmupsWidth - 6);
-            
-            const boxHeight = (noteLines.length * 4) + 4;
-            doc.setFillColor(254, 252, 232); // amber-50
-            doc.rect(warmupsX - 2, warmupsY - 4, warmupsWidth + 4, boxHeight, 'F');
-            
-            doc.text(noteLines, warmupsX, warmupsY);
-            warmupsY += boxHeight;
-        }
-
-        yPos = Math.max(attemptsY, warmupsY) + 6; // Set Y to be after the longest column
+        yPos = Math.max(attemptsY, warmupsY) + 5; // Set Y to be after the longest column
     };
     
     drawLiftSection('Squat', 'squat');
@@ -818,59 +778,6 @@ export const exportToMobilePDF = (state: AppState): Blob => {
                 
                 pageY += warmupRowHeight;
             });
-        }
-
-        // Cues Section
-        const populatedCues = liftData.cues.filter(c => c.trim() !== '');
-        if (populatedCues.length > 0) {
-            pageY += 15;
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(17, 24, 39);
-            doc.text('Technical Cues', margin, pageY);
-            pageY += 10;
-
-            const cueRowHeight = 12;
-            doc.setFontSize(16);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(48, 48, 48);
-
-            populatedCues.forEach((cue, index) => {
-                 if (index % 2 === 1) {
-                    doc.setFillColor(248, 250, 252);
-                    doc.rect(margin, pageY - 9, contentWidth, cueRowHeight, 'F');
-                }
-                doc.text(`• ${cue}`, margin + 2, pageY);
-                pageY += cueRowHeight;
-            });
-        }
-        
-        // Coaching Note Section
-        const coachingNote = liftData.coachingNote;
-        if (coachingNote) {
-            pageY += 15;
-            doc.setFontSize(18);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(180, 83, 9); // amber-700
-            doc.text('Coaching Note', margin, pageY);
-            pageY += 10;
-            
-            const noteRowHeight = 12;
-            doc.setFontSize(14);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(48, 48, 48);
-
-            const noteLines = doc.splitTextToSize(coachingNote, contentWidth - 4);
-            
-            const boxHeight = noteLines.length * (noteRowHeight - 4) + 8;
-            doc.setFillColor(254, 252, 232); // amber-50
-            doc.rect(margin, pageY - 9, contentWidth, boxHeight, 'F');
-            
-            noteLines.forEach((line: string) => {
-                doc.text(line, margin + 2, pageY);
-                pageY += (noteRowHeight - 4);
-            });
-            pageY += 4;
         }
     };
     

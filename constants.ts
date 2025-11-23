@@ -29,7 +29,7 @@ export const SQUAT_REP_SCHEMES: Record<number, number[]>   = { 3:[5,3,2], 4:[5,3
 export const BENCH_REP_SCHEMES: Record<number, number[]>   = { 3:[8,5,3], 4:[8,5,3,1], 5:[8,5,3,1,1], 6:[8,5,3,1,1,1] };
 export const DEADLIFT_REP_SCHEMES: Record<number, number[]>= { 3:[5,3,2], 4:[5,3,2,1], 5:[5,3,2,1,1], 6:[5,3,2,1,1,1], 7:[5,3,2,1,1,1,1] };
 
-export const IPF_WEIGHT_CLASSES = {
+export const IPF_WEIGHT_CLASSES: Record<'male' | 'female', string[]> = {
   male: ['53kg (Sub-Jr/Jr)', '59kg', '66kg', '74kg', '83kg', '93kg', '105kg', '120kg', '120+kg'],
   female: ['43kg (Sub-Jr/Jr)', '47kg', '52kg', '57kg', '63kg', '69kg', '76kg', '84kg', '84+kg']
 };

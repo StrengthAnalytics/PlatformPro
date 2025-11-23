@@ -219,18 +219,11 @@ const LiftSection: React.FC<LiftSectionProps> = ({
           </div>
         </div>
         {error && <p className="text-red-600 text-xs text-center -mt-2 mb-4">Enter 1st attempt to generate warm-ups, or 1st/3rd to calculate.</p>}
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 gap-3">
             <IconButton
-                className="col-span-2"
                 onClick={handleCalculateClick}
             >
                 Calculate
-            </IconButton>
-            <IconButton
-                onClick={() => setShowCues(!showCues)}
-                variant="info"
-            >
-                {showCues ? 'Hide Cues' : 'Add Cues'}
             </IconButton>
             <IconButton
                 onClick={() => onReset(liftType)}
@@ -240,18 +233,6 @@ const LiftSection: React.FC<LiftSectionProps> = ({
             </IconButton>
         </div>
       </div>
-
-      {isCoachingMode && (
-          <div className="bg-amber-50 dark:bg-amber-900/40 p-4 rounded-lg mb-6 border border-amber-200 dark:border-amber-800/60 animate-fadeIn">
-              <h5 className="text-md font-semibold text-amber-800 dark:text-amber-300 mb-2 text-center">Coaching Note</h5>
-              <textarea
-                  placeholder="Enter notes for the lifter here..."
-                  value={coachingNote}
-                  onChange={(e) => onCoachingNoteChange(liftType, e.target.value)}
-                  className="w-full p-2 border rounded-md shadow-sm text-sm bg-white text-slate-900 border-slate-300 focus:border-amber-500 focus:ring-amber-500 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600 min-h-[80px] resize-y"
-              />
-          </div>
-      )}
 
       {!autoGenerateWarmups && (
           <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg mb-6 border border-slate-200 dark:border-slate-700">
@@ -339,24 +320,6 @@ const LiftSection: React.FC<LiftSectionProps> = ({
         <div className="mb-3 text-center">
           <h4 className="text-lg font-semibold text-slate-700 dark:text-slate-200">Warm-ups</h4>
         </div>
-
-        {showCues && (
-            <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg mb-4 border border-slate-200 dark:border-slate-700 transition-all duration-300">
-                <h5 className="text-md font-semibold text-slate-600 dark:text-slate-300 mb-3 text-center">Technical Cues</h5>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {cues.map((cue, index) => (
-                        <input
-                            key={index}
-                            type="text"
-                            placeholder={`Cue ${index + 1}`}
-                            value={cue}
-                            onChange={(e) => onCueChange(liftType, index, e.target.value)}
-                            className="w-full text-center p-2 border rounded-md shadow-sm text-sm bg-white text-slate-900 border-slate-300 focus:border-slate-500 focus:ring-slate-500 dark:bg-slate-700 dark:text-slate-50 dark:border-slate-600"
-                        />
-                    ))}
-                </div>
-            </div>
-        )}
 
         {unit === 'kg' && (
             <div className="flex items-center justify-center gap-2 mb-4">
