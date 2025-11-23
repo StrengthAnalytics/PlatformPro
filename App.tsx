@@ -685,7 +685,7 @@ const App: React.FC = () => {
         <div className="space-y-3">
           <div>
             <h4 className="font-bold text-slate-800 dark:text-slate-100">How it works:</h4>
-            <p className="text-sm text-slate-600 dark:text-slate-400">Select your region, age category, and equipment type. Your weight class is automatically set from Competition Details. The app will display current records for squat, bench press, deadlift, total, and bench press athletes' choice.</p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">Select your region, age category, and equipment type. Your weight class is automatically set from Competition Details. The app will display current records for the Squat, Bench Press (3 lift), Deadlift, and Bench Press (All Competitions).</p>
           </div>
           <div>
             <h4 className="font-bold text-slate-800 dark:text-slate-100">Where records appear:</h4>
