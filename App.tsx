@@ -815,10 +815,11 @@ const App: React.FC = () => {
 
       {IS_PAID_VERSION && (
       <SignedOut>
-        {/* Welcome page with Sign In / Sign Up */}
+        {/* Welcome page with Black Friday sales funnel */}
         <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12 text-center">
-            <div className="mb-8">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12">
+            {/* Header Section */}
+            <div className="text-center mb-10">
               <div className="inline-block p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-6">
                 <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -827,26 +828,13 @@ const App: React.FC = () => {
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                 Welcome to Platform Coach
               </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
+              <p className="text-lg text-slate-600 dark:text-slate-300">
                 The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
               </p>
             </div>
 
-            <div className="space-y-4 mb-12">
-              <SignInButton mode="modal">
-                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
-                  Sign In
-                </button>
-              </SignInButton>
-              <div className="text-slate-500 dark:text-slate-400">or</div>
-              <SignUpButton mode="modal" forceRedirectUrl="/">
-                <button className="w-full sm:w-auto px-12 py-4 text-lg font-semibold text-white bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 rounded-lg shadow-lg transition-all transform hover:scale-105">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </div>
-
-            <div className="pt-8 border-t border-slate-200 dark:border-slate-700">
+            {/* Features Grid */}
+            <div className="mb-10">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
                 <div className="flex items-start gap-3">
                   <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -884,6 +872,62 @@ const App: React.FC = () => {
                   </svg>
                   <span className="text-slate-700 dark:text-slate-300">Technique Score Calculator</span>
                 </div>
+              </div>
+            </div>
+
+            {/* Black Friday Offer Section */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-xl p-8 border-2 border-yellow-400 shadow-xl">
+                {/* Black Friday Badge */}
+                <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 px-6 py-2 rounded-full font-bold text-sm shadow-lg">
+                    🔥 BLACK FRIDAY SPECIAL
+                  </div>
+                </div>
+
+                <div className="text-center mt-4 mb-6">
+                  <div className="flex items-center justify-center gap-3 mb-4">
+                    <div className="text-white">
+                      <div className="text-sm font-semibold text-yellow-400 mb-1">Limited Time Offer</div>
+                      <div className="text-4xl font-bold">$29.88</div>
+                      <div className="text-sm text-slate-400 line-through">$59.76/year</div>
+                    </div>
+                    <div className="h-12 w-px bg-slate-600"></div>
+                    <div className="text-left">
+                      <div className="flex items-center gap-2 text-green-400 font-semibold mb-1">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>7 Day Free Trial</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-green-400 font-semibold">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>50% OFF Full Year</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <SignUpButton mode="modal" forceRedirectUrl="/">
+                    <button className="w-full px-12 py-5 text-xl font-bold text-slate-900 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 hover:from-yellow-300 hover:via-yellow-200 hover:to-yellow-300 rounded-lg shadow-2xl transition-all transform hover:scale-105 hover:shadow-yellow-400/50">
+                      Start Your Free Trial
+                    </button>
+                  </SignUpButton>
+
+                  <p className="text-xs text-slate-400 mt-3">
+                    Cancel anytime during trial • No credit card required
+                  </p>
+                </div>
+              </div>
+
+              {/* Sign In Link */}
+              <div className="text-center mt-6">
+                <SignInButton mode="modal">
+                  <button className="text-sm text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                    Already have an account? <span className="font-semibold underline">Sign In</span>
+                  </button>
+                </SignInButton>
               </div>
             </div>
           </div>
