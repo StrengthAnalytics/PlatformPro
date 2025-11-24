@@ -63,10 +63,10 @@ const Homescreen: React.FC<HomescreenProps> = ({
 
             {/* Footer with bug report link */}
             <div className="text-center mt-12 pt-6 border-t border-slate-200 dark:border-slate-700">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
+                <p className="text-sm text-slate-700 dark:text-slate-200">
                     Found a bug or have a suggestion?{' '}
                     <a
-                        href="https://github.com/StrengthAnalytics/PlatformPro/issues/new/choose"
+                        href="https://www.strengthanalytics.co.uk/contact"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline font-medium transition-colors"

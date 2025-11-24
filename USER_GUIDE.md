@@ -1040,19 +1040,19 @@ Personalise exported PDFs with your own branding.
 
 ### Found a Bug or Issue?
 
-There are two easy ways to report bugs:
+There are two easy ways to contact us:
 
 **1. Settings Menu (⚙️)**
 - Click the settings gear icon in the top navigation
-- Select **"🐛 Report a Bug"**
-- Opens GitHub issue form in new tab
+- Select **"🐛 Report a Bug"** at the bottom of the menu
+- Opens Strength Analytics contact page in new tab
 
 **2. Homescreen Footer**
 - Look for "Found a bug or have a suggestion? Report it here" link
 - Located at the bottom of the homescreen
-- Opens GitHub issue form in new tab
+- Opens Strength Analytics contact page in new tab
 
-**What to Include in Bug Reports:**
+**What to Include When Contacting Us:**
 - Which app version (Platform Coach or Platform Lifter)
 - Which tool/feature you were using
 - What you expected to happen vs. what actually happened
@@ -1062,17 +1062,14 @@ There are two easy ways to report bugs:
 - Any error messages from browser console (F12)
 
 ### Feature Requests & Suggestions
-- Use the same bug report links to submit feature requests
-- Select "Feature Request" template when prompted
+- Use the same contact links to submit feature requests
 - Describe the problem you're trying to solve
 - Explain your proposed solution
 - Include use cases and expected benefits
 
-### Why GitHub?
-- Track status of your report
-- See if others have similar issues
-- Get notified when issues are resolved
-- No account required to submit (but helpful for follow-up)
+### Response Time
+- We aim to respond to all bug reports and suggestions within 24-48 hours
+- Critical bugs affecting competition day functionality will be prioritized
 
 ---
 
