@@ -114,27 +114,61 @@ const speechManager = (() => {
 
     if (englishVoices.length === 0) return null;
 
-    // Try to find a voice matching the gender preference
-    // Male voices often have names like "Google UK English Male", "Daniel", "Fred"
-    // Female voices often have names like "Google UK English Female", "Samantha", "Victoria"
-    const genderKeywords = voiceGender === 'female'
-      ? ['female', 'woman', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona']
-      : ['male', 'man', 'daniel', 'fred', 'thomas', 'oliver', 'rishi'];
+    if (voiceGender === 'female') {
+      // Priority order for female voices:
+      // 1. Kate (macOS)
+      // 2. Microsoft Libby (Windows)
+      // 3. en-GB-female variants (Android)
+      // 4. Other female voices
+      const priorityVoices = ['kate', 'libby'];
 
-    const preferredVoice = englishVoices.find(voice =>
-      genderKeywords.some(keyword => voice.name.toLowerCase().includes(keyword))
-    );
+      // Try priority voices first
+      for (const priority of priorityVoices) {
+        const voice = englishVoices.find(v =>
+          v.name.toLowerCase().includes(priority)
+        );
+        if (voice) return voice;
+      }
 
-    // Return preferred voice, or first English voice, or any voice
-    return preferredVoice || englishVoices[0] || voices[0] || null;
+      // Try en-GB female variants (Android)
+      const gbFemale = englishVoices.find(v =>
+        v.lang.includes('en-GB') && v.name.toLowerCase().includes('female')
+      );
+      if (gbFemale) return gbFemale;
+
+      // Fallback to any female voice
+      const femaleKeywords = ['female', 'woman', 'samantha', 'victoria', 'karen', 'moira', 'tessa', 'fiona'];
+      const anyFemale = englishVoices.find(voice =>
+        femaleKeywords.some(keyword => voice.name.toLowerCase().includes(keyword))
+      );
+      if (anyFemale) return anyFemale;
+    } else {
+      // Male voice selection (keep existing logic)
+      const maleKeywords = ['male', 'man', 'daniel', 'fred', 'thomas', 'oliver', 'rishi'];
+      const preferredVoice = englishVoices.find(voice =>
+        maleKeywords.some(keyword => voice.name.toLowerCase().includes(keyword))
+      );
+      if (preferredVoice) return preferredVoice;
+    }
+
+    // Return first English voice or any voice as fallback
+    return englishVoices[0] || voices[0] || null;
   };
 
   const createUtterance = (text: string, volume: number, voiceGender: 'male' | 'female'): SpeechSynthesisUtterance => {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.volume = volume;
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-    utterance.lang = 'en-US';
+
+    // Apply gender-specific voice characteristics
+    if (voiceGender === 'female') {
+      utterance.pitch = 0.85;  // Slightly lower, warmer tone
+      utterance.rate = 0.9;    // Unhurried, calm pacing
+      utterance.lang = 'en-GB'; // British English for Kate/Libby
+    } else {
+      utterance.pitch = 1.0;   // Default pitch for male
+      utterance.rate = 1.0;    // Default rate for male
+      utterance.lang = 'en-US'; // American English
+    }
 
     const selectedVoice = selectVoice(voiceGender);
     if (selectedVoice) {
