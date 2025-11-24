@@ -63,7 +63,7 @@ const Homescreen: React.FC<HomescreenProps> = ({
 
             {/* Footer with bug report link */}
             <div className="text-center mt-12 pt-6 border-t border-slate-200 dark:border-slate-700">
-                <p className="text-sm text-slate-700 dark:text-slate-200">
+                <p className="text-sm text-white">
                     Found a bug or have a suggestion?{' '}
                     <a
                         href="https://www.strengthanalytics.co.uk/contact"

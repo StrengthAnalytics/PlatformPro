@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: 📚 User Guide
-    url: https://github.com/StrengthAnalytics/PlatformPro/blob/main/USER_GUIDE.md
-    about: Check the comprehensive user guide for help with features
-  - name: 💬 Discussions
-    url: https://github.com/StrengthAnalytics/PlatformPro/discussions
-    about: Ask questions or discuss ideas with the community
