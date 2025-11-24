@@ -828,51 +828,9 @@ const App: React.FC = () => {
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                 Welcome to Platform Coach
               </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300">
+              <p className="text-lg text-slate-600 dark:text-slate-300 mb-10">
                 The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
               </p>
-            </div>
-
-            {/* Features Grid */}
-            <div className="mb-10">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-700 dark:text-slate-300">Competition Meet Planner</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-700 dark:text-slate-300">Workout Timer</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-700 dark:text-slate-300">1RM Calculator</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-700 dark:text-slate-300">Warmup Generator</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-700 dark:text-slate-300">Velocity Profile Generator</span>
-                </div>
-                <div className="flex items-start gap-3">
-                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span className="text-slate-700 dark:text-slate-300">Technique Score Calculator</span>
-                </div>
-              </div>
             </div>
 
             {/* Black Friday Offer Section */}
@@ -922,6 +880,48 @@ const App: React.FC = () => {
                     Already have an account? <span className="font-semibold underline">Sign In</span>
                   </button>
                 </SignInButton>
+              </div>
+            </div>
+
+            {/* Features Grid */}
+            <div className="mt-10 pt-10 border-t border-slate-200 dark:border-slate-700">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Competition Meet Planner</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Workout Timer</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">1RM Calculator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Warmup Generator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Velocity Profile Generator</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <svg className="w-6 h-6 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700 dark:text-slate-300">Technique Score Calculator</span>
+                </div>
               </div>
             </div>
           </div>
