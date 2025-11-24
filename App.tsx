@@ -877,34 +877,28 @@ const App: React.FC = () => {
 
             {/* Black Friday Offer Section */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-xl p-8 border-2 border-yellow-400 shadow-xl">
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-xl p-6 sm:p-8 border-2 border-yellow-400 shadow-xl">
                 {/* Black Friday Badge */}
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 px-6 py-2 rounded-full font-bold text-sm shadow-lg">
-                    🔥 BLACK FRIDAY SPECIAL
+                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 px-4 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">
+                    BLACK FRIDAY SPECIAL
                   </div>
                 </div>
 
                 <div className="text-center mt-4 mb-6">
-                  <div className="flex items-center justify-center gap-3 mb-4">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-3 mb-6">
                     <div className="text-white">
                       <div className="text-sm font-semibold text-yellow-400 mb-1">Limited Time Offer</div>
                       <div className="text-4xl font-bold">$29.88</div>
                       <div className="text-sm text-slate-400 line-through">$59.76/year</div>
                     </div>
-                    <div className="h-12 w-px bg-slate-600"></div>
-                    <div className="text-left">
-                      <div className="flex items-center gap-2 text-green-400 font-semibold mb-1">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>7 Day Free Trial</span>
+                    <div className="hidden sm:block h-12 w-px bg-slate-600"></div>
+                    <div className="text-center sm:text-left">
+                      <div className="text-green-400 font-semibold mb-2">
+                        <span className="whitespace-nowrap">7 Day Free Trial</span>
                       </div>
-                      <div className="flex items-center gap-2 text-green-400 font-semibold">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                        <span>50% OFF Full Year</span>
+                      <div className="text-green-400 font-semibold">
+                        <span className="whitespace-nowrap">50% OFF Full Year</span>
                       </div>
                     </div>
                   </div>
