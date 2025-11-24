@@ -88,6 +88,9 @@ const audioManager = (() => {
 
 // --- SPEECH UTILITY ---
 const speechManager = (() => {
+  // Cache for pre-created utterances to avoid delays
+  const utteranceCache: Map<string, SpeechSynthesisUtterance> = new Map();
+
   const ensureVoicesLoaded = () => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
@@ -141,6 +144,21 @@ const speechManager = (() => {
     return utterance;
   };
 
+  // Pre-cache utterances for countdown numbers to eliminate delay
+  const preCacheNumbers = (volume: number, voiceGender: 'male' | 'female') => {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+
+    // Clear old cache
+    utteranceCache.clear();
+
+    // Pre-create utterances for numbers 1-60
+    for (let i = 1; i <= 60; i++) {
+      const cacheKey = `${i}-${voiceGender}`;
+      const utterance = createUtterance(String(i), volume, voiceGender);
+      utteranceCache.set(cacheKey, utterance);
+    }
+  };
+
   const speak = (text: string, volume: number, voiceGender: 'male' | 'female' = 'female') => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
       console.warn('Speech synthesis not supported');
@@ -153,8 +171,18 @@ const speechManager = (() => {
     // Re-check voices are loaded (important for mobile browsers)
     ensureVoicesLoaded();
 
-    // Create new utterance immediately - no delay
-    const utterance = createUtterance(text, volume, voiceGender);
+    // Try to use cached utterance for numbers
+    const cacheKey = `${text}-${voiceGender}`;
+    let utterance = utteranceCache.get(cacheKey);
+
+    // If not in cache, create new utterance
+    if (!utterance) {
+      utterance = createUtterance(text, volume, voiceGender);
+    } else {
+      // Update volume for cached utterance (in case it changed)
+      utterance.volume = volume;
+    }
+
     window.speechSynthesis.speak(utterance);
   };
 
@@ -189,7 +217,7 @@ const speechManager = (() => {
     ensureVoicesLoaded();
   }
 
-  return { speak, initialize };
+  return { speak, initialize, preCacheNumbers };
 })();
 
 
@@ -1236,6 +1264,10 @@ const ConfigurationScreen = ({
                                         // If turning speech ON, initialize it (important for mobile browsers)
                                         if (!useSpeech) {
                                             speechManager.initialize();
+                                            // Pre-cache numbers for instant playback
+                                            setTimeout(() => {
+                                                speechManager.preCacheNumbers(alertVolume, voiceGender);
+                                            }, 100);
                                         }
                                         setUseSpeech(!useSpeech);
                                     }}
@@ -1274,6 +1306,10 @@ const ConfigurationScreen = ({
                                         onClick={() => {
                                             setVoiceGender('female');
                                             localStorage.setItem('workout_timer_voice_gender', 'female');
+                                            // Pre-cache numbers with new voice gender
+                                            setTimeout(() => {
+                                                speechManager.preCacheNumbers(alertVolume, 'female');
+                                            }, 100);
                                         }}
                                         className={`flex-1 py-2 px-4 rounded-md transition-colors ${
                                             voiceGender === 'female'
@@ -1287,6 +1323,10 @@ const ConfigurationScreen = ({
                                         onClick={() => {
                                             setVoiceGender('male');
                                             localStorage.setItem('workout_timer_voice_gender', 'male');
+                                            // Pre-cache numbers with new voice gender
+                                            setTimeout(() => {
+                                                speechManager.preCacheNumbers(alertVolume, 'male');
+                                            }, 100);
                                         }}
                                         className={`flex-1 py-2 px-4 rounded-md transition-colors ${
                                             voiceGender === 'male'
@@ -1583,6 +1623,11 @@ const WorkoutTimer: React.FC = () => {
     };
 
     const handleStartWorkout = () => {
+        // Pre-cache speech utterances if speech is enabled
+        if (useSpeech) {
+            speechManager.preCacheNumbers(alertVolume, voiceGender);
+        }
+
         let config: { intervals: Interval[], rounds: number } | null = null;
         if (timerMode === 'rolling') {
             const numLeadIn = parseInt(leadIn) || 0;
