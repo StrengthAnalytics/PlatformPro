@@ -139,7 +139,16 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                         </div>
                     </div>
                     <div className="border-t border-slate-200 dark:border-slate-700"></div>
-                    <div className="p-2">
+                    <div className="p-2 space-y-2">
+                        <button
+                            onClick={() => {
+                                window.open('https://www.strengthanalytics.co.uk/contact', '_blank');
+                                setIsOpen(false);
+                            }}
+                            className="w-full text-center px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-md transition-colors"
+                        >
+                            🐛 Report a Bug
+                        </button>
                         <button
                             onClick={() => { onSaveSettings(); setIsOpen(false); }}
                             className="w-full text-center px-4 py-2 text-sm font-semibold text-white bg-slate-700 hover:bg-slate-600 dark:bg-indigo-600 dark:hover:bg-indigo-700 rounded-md transition-colors"
