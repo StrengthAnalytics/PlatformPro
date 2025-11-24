@@ -916,7 +916,7 @@ const App: React.FC = () => {
                   </SignUpButton>
 
                   <p className="text-xs text-slate-400 mt-3">
-                    Cancel anytime during trial • No credit card required
+                    Cancel anytime during trial
                   </p>
                 </div>
               </div>
