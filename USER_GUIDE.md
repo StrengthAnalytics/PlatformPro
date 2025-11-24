@@ -1112,15 +1112,41 @@ Personalize exported PDFs with your own branding.
 - Check the in-app help icons (ⓘ) for context-specific tips
 - Visit the FAQ section at platformcoach.app/help
 
-**Found a Bug?**
-- Report issues via the feedback button
-- Include what you were doing when error occurred
-- Screenshots helpful for visual bugs
+**Found a Bug or Issue?**
 
-**Feature Requests?**
-- Submit suggestions through app settings
-- Describe the use case and benefit
-- Check roadmap for planned features
+There are two easy ways to report bugs:
+
+1. **Settings Menu (⚙️)**
+   - Click the settings gear icon in the top navigation
+   - Select "🐛 Report a Bug"
+   - Opens GitHub issue form in new tab
+
+2. **Homescreen Footer**
+   - Look for "Found a bug or have a suggestion? Report it here" link
+   - Located at the bottom of the homescreen
+   - Opens GitHub issue form in new tab
+
+**What to Include in Bug Reports:**
+- Which app version (Platform Coach or Platform Lifter)
+- Which tool/feature you were using
+- What you expected to happen vs. what actually happened
+- Steps to reproduce the issue
+- Browser and device type
+- Screenshots if applicable
+- Any error messages from browser console (F12)
+
+**Feature Requests & Suggestions**
+- Use the same bug report links to submit feature requests
+- Select "Feature Request" template when prompted
+- Describe the problem you're trying to solve
+- Explain your proposed solution
+- Include use cases and expected benefits
+
+**Why GitHub?**
+- Track status of your report
+- See if others have similar issues
+- Get notified when issues are resolved
+- No account required to submit (but helpful for follow-up)
 
 ---
 

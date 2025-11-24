@@ -70,6 +70,16 @@ const SettingsMenu: React.FC<SettingsMenuProps> = ({
                         </button>
                          <div className="border-t border-slate-200 dark:border-slate-700"></div>
                         <button
+                            onClick={() => {
+                                window.open('https://github.com/StrengthAnalytics/PlatformPro/issues/new/choose', '_blank');
+                                setIsOpen(false);
+                            }}
+                            className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
+                        >
+                            🐛 Report a Bug
+                        </button>
+                        <div className="border-t border-slate-200 dark:border-slate-700"></div>
+                        <button
                             onClick={() => { onBrandingClick(); setIsOpen(false); }}
                             className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700"
                         >

@@ -53,12 +53,27 @@ const Homescreen: React.FC<HomescreenProps> = ({
                     title="Velocity Profile"
                     onClick={onNavigateToVelocityProfile}
                 />
-                <ToolCard 
+                <ToolCard
                     icon={<TechniqueScoreIcon />}
                     title="Technique Score"
                     onClick={onNavigateToTechniqueScore}
                 />
                 {/* Future tools will be added here */}
+            </div>
+
+            {/* Footer with bug report link */}
+            <div className="text-center mt-12 pt-6 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Found a bug or have a suggestion?{' '}
+                    <a
+                        href="https://github.com/StrengthAnalytics/PlatformPro/issues/new/choose"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline font-medium transition-colors"
+                    >
+                        Report it here
+                    </a>
+                </p>
             </div>
         </div>
     </main>
