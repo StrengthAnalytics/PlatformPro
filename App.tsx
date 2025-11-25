@@ -820,10 +820,12 @@ const App: React.FC = () => {
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12">
             {/* Header Section */}
             <div className="text-center mb-10">
-              <div className="inline-block p-4 bg-gradient-to-br from-blue-600 to-purple-600 rounded-full mb-6">
-                <svg className="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
+              <div className="inline-block mb-6">
+                <img
+                  src="/icons/icon-192-paid.svg"
+                  alt="Platform Coach Logo"
+                  className="w-16 h-16 rounded-xl shadow-lg"
+                />
               </div>
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                 Welcome to Platform Coach
