@@ -585,12 +585,20 @@ const App: React.FC = () => {
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.download = `${appState.details.lifterName.replace(/ /g, '_') || 'lifter'}_plan.plp`;
+    const fileName = `${appState.details.lifterName.replace(/ /g, '_') || 'lifter'}_plan.plp`;
+    link.download = fileName;
     link.href = url;
+    link.setAttribute('download', fileName); // Explicitly set download attribute for Safari
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    // Delay cleanup for Safari compatibility
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
+
     showFeedback('Plan exported successfully!');
   };
 
@@ -620,7 +628,9 @@ const App: React.FC = () => {
   };
 
   const handlePlannerImportClick = () => {
-    triggerImport('.plp,.json', handleImportPlan);
+    // Accept all files to allow .plp files (which have no standard MIME type)
+    // The validation happens in handleImportPlan anyway
+    triggerImport('*', handleImportPlan);
   };
   
   const exportHelpContent = {
