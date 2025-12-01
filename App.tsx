@@ -628,7 +628,9 @@ const App: React.FC = () => {
   };
 
   const handlePlannerImportClick = () => {
-    triggerImport('.plp,.json,application/json', handleImportPlan);
+    // Accept all files to allow .plp files (which have no standard MIME type)
+    // The validation happens in handleImportPlan anyway
+    triggerImport('*', handleImportPlan);
   };
   
   const exportHelpContent = {
