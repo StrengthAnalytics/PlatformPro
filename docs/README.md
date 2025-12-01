@@ -6,12 +6,20 @@ This directory contains comprehensive documentation for the Platform Coach appli
 
 ```
 /docs
-├── features/          # Feature specifications and user stories
-├── architecture/      # Technical architecture documentation
-├── business-logic/    # Core algorithms and calculations
-├── api-specs/         # Data structures and interface definitions
-├── decisions/         # Architecture Decision Records (ADRs)
-└── README.md         # This file
+├── features/                    # Feature specifications and user stories
+│   └── competition-planner.md  # Core planning feature
+├── architecture/                # Technical architecture documentation
+├── business-logic/              # Core algorithms and calculations
+│   ├── attempt-calculations.md # Attempt strategy algorithms
+│   └── warmup-generation.md    # Warmup progression logic
+├── api-specs/                   # Data structures and interface definitions
+│   └── types-overview.md       # Complete TypeScript type system
+├── decisions/                   # Architecture Decision Records (ADRs)
+│   ├── 001-safari-file-download-handling.md
+│   └── 002-plp-file-upload-accept-attribute.md
+├── AI-AGENT-GUIDE.md           # Guide for AI-assisted migration
+├── TEMPLATES.md                # Documentation templates
+└── README.md                   # This file
 ```
 
 ## Documentation Philosophy
@@ -64,9 +72,58 @@ Document key decisions using this format:
 - **Consequences** - What are the trade-offs?
 - **Date** - When was this decided?
 
+## Current Documentation Status
+
+### ✅ Completed
+- **AI Agent Guide** - Complete guide for Claude Code during migration
+- **Documentation Templates** - Templates for features and business logic
+- **Type System** - Full TypeScript type documentation
+- **ADRs** - Safari download and file upload decisions
+- **Core Business Logic:**
+  - Attempt calculations with all three strategies
+  - Warmup generation (default and dynamic)
+- **Major Features:**
+  - Competition Planner (complete specification)
+
+### 📝 To Be Documented
+- **Features:**
+  - Game Day Mode
+  - 1RM Calculator
+  - Warmup Generator (standalone)
+  - Velocity Profile Generator
+  - Technique Score Calculator
+  - Workout Timer
+- **Business Logic:**
+  - Plate breakdown calculations
+  - Scoring formulas (IPF GL, Wilks, DOTS)
+  - Record lookup and comparison
+  - Unit conversions
+- **Architecture:**
+  - Component structure
+  - State management patterns
+  - PDF generation architecture
+  - Authentication flow (Clerk)
+
 ## Quick Links
 
+### Documentation Files
+- [AI Agent Guide](AI-AGENT-GUIDE.md) - **START HERE** for Next.js migration
+- [Templates](TEMPLATES.md) - Use these when adding documentation
 - [CHANGELOG.md](../CHANGELOG.md) - Version history and bug fixes
+
+### Feature Specifications
+- [Competition Planner](features/competition-planner.md) - Core planning feature
+
+### Business Logic
+- [Attempt Calculations](business-logic/attempt-calculations.md) - How attempts are calculated
+- [Warmup Generation](business-logic/warmup-generation.md) - Warmup progression algorithms
+
+### Technical References
+- [Type System Overview](api-specs/types-overview.md) - All TypeScript types
+- [ADR 001: Safari Downloads](decisions/001-safari-file-download-handling.md)
+- [ADR 002: File Upload](decisions/002-plp-file-upload-accept-attribute.md)
+
+### Project Files
 - [README.md](../README.md) - Main project README
 - [USER_GUIDE.md](../USER_GUIDE.md) - End-user documentation
 
