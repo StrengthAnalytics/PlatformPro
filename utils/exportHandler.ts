@@ -930,10 +930,16 @@ export const savePdf = (blob: Blob, fileName: string) => {
     const link = document.createElement('a');
     link.href = url;
     link.download = fileName;
+    link.setAttribute('download', fileName); // Explicitly set download attribute for Safari
+    link.style.display = 'none';
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+
+    // Delay cleanup for Safari compatibility
+    setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, 100);
 };
 
 export const sharePdf = async (blob: Blob, fileName: string, title: string, text: string) => {
