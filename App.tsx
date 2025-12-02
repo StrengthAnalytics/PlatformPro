@@ -825,62 +825,52 @@ const App: React.FC = () => {
 
       {IS_PAID_VERSION && (
       <SignedOut>
-        {/* Welcome page with Black Friday sales funnel */}
+        {/* Welcome page with subscription offer */}
         <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12">
             {/* Header Section */}
-            <div className="text-center mb-10">
-              <div className="inline-block mb-6">
-                <img
-                  src="/icons/icon-192-paid.svg"
-                  alt="Platform Coach Logo"
-                  className="w-16 h-16 rounded-xl shadow-lg"
-                />
-              </div>
+            <div className="text-center mb-8">
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                 Welcome to Platform Coach
               </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300 mb-10">
+              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
                 The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
               </p>
             </div>
 
-            {/* Black Friday Offer Section */}
+            {/* Free Trial Offer Section */}
             <div className="relative">
-              <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-xl p-6 sm:p-8 border-2 border-yellow-400 shadow-xl">
-                {/* Black Friday Badge */}
+              <div className="bg-gradient-to-br from-slate-900 to-slate-800 dark:from-slate-950 dark:to-slate-900 rounded-xl p-6 sm:p-8 border-2 border-cyan-400 shadow-xl shadow-cyan-500/20">
+                {/* Free Trial Badge */}
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-gradient-to-r from-yellow-400 to-orange-500 text-slate-900 px-4 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">
-                    BLACK FRIDAY SPECIAL
+                  <div className="bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 text-white px-4 sm:px-6 py-2 rounded-full font-bold text-xs sm:text-sm shadow-lg whitespace-nowrap">
+                    FREE TRIAL - NO CREDIT CARD
                   </div>
                 </div>
 
                 <div className="text-center mt-4 mb-6">
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-3 mb-6">
-                    <div className="text-white">
-                      <div className="text-sm font-semibold text-yellow-400 mb-1">Limited Time Offer</div>
-                      <div className="text-4xl font-bold">$29.88</div>
-                      <div className="text-sm text-slate-400 line-through">$59.76/year</div>
+                  {/* Pricing Options in Tab-Style Boxes */}
+                  <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 mb-6">
+                    <div className="flex-1 bg-slate-800 dark:bg-slate-950 border-2 border-cyan-400 rounded-lg p-4 text-center">
+                      <div className="text-3xl font-bold text-white mb-2">$3.99<span className="text-lg text-slate-400">/mo</span></div>
+                      <div className="text-xs text-cyan-400 mb-1">Billed annually ($47.88/year)</div>
+                      <div className="text-xs text-green-400 font-semibold">Save 20%</div>
                     </div>
-                    <div className="hidden sm:block h-12 w-px bg-slate-600"></div>
-                    <div className="text-center sm:text-left">
-                      <div className="text-green-400 font-semibold mb-2">
-                        <span className="whitespace-nowrap">7 Day Free Trial</span>
-                      </div>
-                      <div className="text-green-400 font-semibold">
-                        <span className="whitespace-nowrap">50% OFF Full Year</span>
-                      </div>
+                    <div className="flex-1 bg-slate-800 dark:bg-slate-950 border-2 border-slate-600 rounded-lg p-4 text-center">
+                      <div className="text-3xl font-bold text-white mb-2">$4.99<span className="text-lg text-slate-400">/mo</span></div>
+                      <div className="text-xs text-slate-400 mb-1">Billed monthly</div>
+                      <div className="text-xs text-transparent">Save 20%</div>
                     </div>
                   </div>
 
                   <SignUpButton mode="modal" forceRedirectUrl="/">
-                    <button className="w-full px-12 py-5 text-xl font-bold text-slate-900 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 hover:from-yellow-300 hover:via-yellow-200 hover:to-yellow-300 rounded-lg shadow-2xl transition-all transform hover:scale-105 hover:shadow-yellow-400/50">
-                      Start Your Free Trial
+                    <button className="w-full px-12 py-5 text-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 hover:from-cyan-400 hover:via-blue-400 hover:to-indigo-500 rounded-lg shadow-2xl transition-all transform hover:scale-105 hover:shadow-cyan-400/50">
+                      Start Your 14 Day Free Trial
                     </button>
                   </SignUpButton>
 
                   <p className="text-xs text-slate-400 mt-3">
-                    Cancel anytime during trial
+                    No credit card required • Cancel anytime during trial
                   </p>
                 </div>
               </div>
