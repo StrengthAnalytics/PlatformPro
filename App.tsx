@@ -829,18 +829,11 @@ const App: React.FC = () => {
         <div className="max-w-4xl mx-auto p-8 sm:p-12 lg:p-16">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8 sm:p-12">
             {/* Header Section */}
-            <div className="text-center mb-10">
-              <div className="inline-block mb-6">
-                <img
-                  src="/icons/icon-192-paid.svg"
-                  alt="Platform Coach Logo"
-                  className="w-16 h-16 rounded-xl shadow-lg"
-                />
-              </div>
+            <div className="text-center mb-8">
               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-4">
                 Welcome to Platform Coach
               </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300 mb-10">
+              <p className="text-lg text-slate-600 dark:text-slate-300 mb-8">
                 The professional powerlifting meet planner and training toolkit for serious athletes and coaches.
               </p>
             </div>
@@ -856,27 +849,23 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="text-center mt-4 mb-6">
-                  <div className="flex flex-col items-center justify-center gap-4 mb-6">
-                    <div className="text-white">
-                      <div className="text-sm font-semibold text-cyan-400 mb-3">14 Day Free Trial - No Credit Card Required</div>
-                      <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-white">$3.99<span className="text-lg text-slate-400">/mo</span></div>
-                          <div className="text-xs text-cyan-400 mt-1">Billed annually ($47.88/year)</div>
-                          <div className="text-xs text-green-400 font-semibold mt-1">Save 20%</div>
-                        </div>
-                        <div className="text-slate-500">or</div>
-                        <div className="text-center">
-                          <div className="text-3xl font-bold text-white">$4.99<span className="text-lg text-slate-400">/mo</span></div>
-                          <div className="text-xs text-slate-400 mt-1">Billed monthly</div>
-                        </div>
-                      </div>
+                  {/* Pricing Options in Tab-Style Boxes */}
+                  <div className="flex flex-col sm:flex-row items-stretch justify-center gap-4 mb-6">
+                    <div className="flex-1 bg-slate-800 dark:bg-slate-950 border-2 border-cyan-400 rounded-lg p-4 text-center">
+                      <div className="text-3xl font-bold text-white mb-2">$3.99<span className="text-lg text-slate-400">/mo</span></div>
+                      <div className="text-xs text-cyan-400 mb-1">Billed annually ($47.88/year)</div>
+                      <div className="text-xs text-green-400 font-semibold">Save 20%</div>
+                    </div>
+                    <div className="flex-1 bg-slate-800 dark:bg-slate-950 border-2 border-slate-600 rounded-lg p-4 text-center">
+                      <div className="text-3xl font-bold text-white mb-2">$4.99<span className="text-lg text-slate-400">/mo</span></div>
+                      <div className="text-xs text-slate-400 mb-1">Billed monthly</div>
+                      <div className="text-xs text-transparent">Save 20%</div>
                     </div>
                   </div>
 
                   <SignUpButton mode="modal" forceRedirectUrl="/">
                     <button className="w-full px-12 py-5 text-xl font-bold text-white bg-gradient-to-r from-cyan-500 via-blue-500 to-indigo-600 hover:from-cyan-400 hover:via-blue-400 hover:to-indigo-500 rounded-lg shadow-2xl transition-all transform hover:scale-105 hover:shadow-cyan-400/50">
-                      Start Your Free Trial
+                      Start Your 14 Day Free Trial
                     </button>
                   </SignUpButton>
 
