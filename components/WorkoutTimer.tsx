@@ -381,9 +381,9 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
     if (document.visibilityState === 'visible') {
       timerRef.current = window.setInterval(() => {
         setTimeLeft(prev => {
-          if (alertTimings.includes(prev - 1)) {
+          if (alertTimings.includes(prev)) {
             if (useSpeech) {
-              speechManager.speak(String(prev - 1), alertVolume, voiceGender);
+              speechManager.speak(String(prev), alertVolume, voiceGender);
             } else {
               audioManager.playSound('long', alertVolume);
             }
@@ -771,9 +771,9 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
 
         timerRef.current = window.setInterval(() => {
             setTimeLeft(prev => {
-                if (alertTimings.includes(prev - 1)) {
+                if (alertTimings.includes(prev)) {
                     if (useSpeech) {
-                        speechManager.speak(String(prev - 1), alertVolume, voiceGender);
+                        speechManager.speak(String(prev), alertVolume, voiceGender);
                     } else {
                         audioManager.playSound('long', alertVolume);
                     }
