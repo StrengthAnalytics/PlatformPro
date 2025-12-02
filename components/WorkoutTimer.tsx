@@ -381,13 +381,11 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
     if (document.visibilityState === 'visible') {
       timerRef.current = window.setInterval(() => {
         setTimeLeft(prev => {
-          const newValue = prev - 1;
-
-          // Trigger speech/beep immediately for the NEW value before React updates display
-          // This ensures audio starts processing at the exact moment of countdown
-          if (alertTimings.includes(newValue)) {
+          // Speak CURRENT number while it's still visible, then countdown
+          // This ensures user hears the number that's currently on screen
+          if (alertTimings.includes(prev)) {
             if (useSpeech) {
-              speechManager.speak(String(newValue), alertVolume, voiceGender);
+              speechManager.speak(String(prev), alertVolume, voiceGender);
             } else {
               audioManager.playSound('long', alertVolume);
             }
@@ -399,7 +397,7 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
             nextInterval();
             return 0;
           }
-          return newValue;
+          return prev - 1;
         });
       }, 1000);
     }
@@ -776,13 +774,11 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
 
         timerRef.current = window.setInterval(() => {
             setTimeLeft(prev => {
-                const newValue = prev - 1;
-
-                // Trigger speech/beep immediately for the NEW value before React updates display
-                // This ensures audio starts processing at the exact moment of countdown
-                if (alertTimings.includes(newValue)) {
+                // Speak CURRENT number while it's still visible, then countdown
+                // This ensures user hears the number that's currently on screen
+                if (alertTimings.includes(prev)) {
                     if (useSpeech) {
-                        speechManager.speak(String(newValue), alertVolume, voiceGender);
+                        speechManager.speak(String(prev), alertVolume, voiceGender);
                     } else {
                         audioManager.playSound('long', alertVolume);
                     }
@@ -800,7 +796,7 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
                         return restTime;
                     }
                 }
-                return newValue;
+                return prev - 1;
             });
         }, 1000);
         return () => { if (timerRef.current) clearInterval(timerRef.current) };
@@ -989,7 +985,7 @@ const ConfigurationScreen = ({
 
         try {
             await navigator.clipboard.writeText(jsonString);
-            alert(`Timer "${timer.name}" copied to clipboard! Share this text to send the timer.`);
+            alert(`Timer "${timer.name}" copied to clipboard! Share this text to send the timer plan.`);
         } catch (error) {
             console.error('Error copying to clipboard:', error);
             alert('Failed to copy to clipboard. Please try export instead.');
@@ -1003,7 +999,7 @@ const ConfigurationScreen = ({
 
             // Validate the timer object
             if (!importedTimer.name || !importedTimer.mode) {
-                alert('Invalid timer data. Please copy valid timer JSON and try again.');
+                alert('Invalid timer plan. Please copy a valid timer plan and try again.');
                 return;
             }
 
@@ -1016,7 +1012,7 @@ const ConfigurationScreen = ({
             alert(`Timer "${newTimer.name}" imported successfully!`);
         } catch (error) {
             console.error('Error pasting from clipboard:', error);
-            alert('Failed to paste timer. Make sure you have copied valid timer JSON to your clipboard.');
+            alert('Failed to paste timer. Make sure you have copied a valid timer plan to your clipboard.');
         }
     };
 
@@ -1468,16 +1464,16 @@ const ConfigurationScreen = ({
                     </div>
                     <div className="grid grid-cols-2 gap-2 mt-2">
                         <IconButton onClick={handleCopyToClipboard} variant="info" className="!text-sm">
-                            📋 Copy JSON
+                            📋 Copy Plan
                         </IconButton>
                         <IconButton onClick={handlePasteFromClipboard} variant="info" className="!text-sm">
-                            📋 Paste JSON
+                            📋 Paste Plan
                         </IconButton>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                         Export/Share to send timer to clients. Import to load a shared timer.
                         <br />
-                        <strong>Safari Mobile:</strong> Use Copy/Paste JSON buttons - copy the timer, share via text/email, then paste to import.
+                        <strong>Safari Mobile:</strong> Use Copy/Paste Plan buttons - copy the timer, share via text/email, then paste to import.
                     </p>
                 </CollapsibleSection>
             </div>
