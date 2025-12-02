@@ -381,13 +381,6 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
     if (document.visibilityState === 'visible') {
       timerRef.current = window.setInterval(() => {
         setTimeLeft(prev => {
-          if (alertTimings.includes(prev - 1)) {
-            if (useSpeech) {
-              speechManager.speak(String(prev - 1), alertVolume, voiceGender);
-            } else {
-              audioManager.playSound('long', alertVolume);
-            }
-          }
           if (prev <= 1) {
             // Always play the extra-long beep at 0 seconds, even in voice mode
             audioManager.playSound('extra-long', alertVolume);
@@ -398,8 +391,19 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
         });
       }, 1000);
     }
-  }, [stopTicking, nextInterval, alertTimings, alertVolume, useSpeech, voiceGender]);
-  
+  }, [stopTicking, nextInterval, alertVolume]);
+
+  // Effect to trigger speech/beeps immediately when timeLeft changes
+  useEffect(() => {
+    if (status === 'running' && alertTimings.includes(timeLeft)) {
+      if (useSpeech) {
+        speechManager.speak(String(timeLeft), alertVolume, voiceGender);
+      } else {
+        audioManager.playSound('long', alertVolume);
+      }
+    }
+  }, [timeLeft, status, alertTimings, useSpeech, alertVolume, voiceGender]);
+
   // Main effect to control the timer based on status
   useEffect(() => {
     if (status === 'running') {
@@ -771,13 +775,6 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
 
         timerRef.current = window.setInterval(() => {
             setTimeLeft(prev => {
-                if (alertTimings.includes(prev - 1)) {
-                    if (useSpeech) {
-                        speechManager.speak(String(prev - 1), alertVolume, voiceGender);
-                    } else {
-                        audioManager.playSound('long', alertVolume);
-                    }
-                }
                 if (prev <= 1) {
                     audioManager.playSound('extra-long', alertVolume);
                     if (currentSet >= sets) {
@@ -794,7 +791,18 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
             });
         }, 1000);
         return () => { if (timerRef.current) clearInterval(timerRef.current) };
-    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume, useSpeech, voiceGender]);
+    }, [status, restTime, currentSet, sets, onComplete, alertVolume]);
+
+    // Effect to trigger speech/beeps immediately when timeLeft changes
+    useEffect(() => {
+        if (status === 'running' && alertTimings.includes(timeLeft)) {
+            if (useSpeech) {
+                speechManager.speak(String(timeLeft), alertVolume, voiceGender);
+            } else {
+                audioManager.playSound('long', alertVolume);
+            }
+        }
+    }, [timeLeft, status, alertTimings, useSpeech, alertVolume, voiceGender]);
     
     useEffect(() => {
         const handleVisibilityChange = () => {
@@ -965,6 +973,48 @@ const ConfigurationScreen = ({
             // Fallback to export if Web Share API not supported
             alert('Sharing not supported on this device. Downloading file instead.');
             handleExportTimer();
+        }
+    };
+
+    const handleCopyToClipboard = async () => {
+        if (!loadedTimerId || !savedTimers[loadedTimerId]) {
+            alert('Please save or load a timer first before copying.');
+            return;
+        }
+
+        const timer = savedTimers[loadedTimerId];
+        const jsonString = JSON.stringify(timer, null, 2);
+
+        try {
+            await navigator.clipboard.writeText(jsonString);
+            alert(`Timer "${timer.name}" copied to clipboard! Share this text to send the timer plan.`);
+        } catch (error) {
+            console.error('Error copying to clipboard:', error);
+            alert('Failed to copy to clipboard. Please try export instead.');
+        }
+    };
+
+    const handlePasteFromClipboard = async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            const importedTimer = JSON.parse(text);
+
+            // Validate the timer object
+            if (!importedTimer.name || !importedTimer.mode) {
+                alert('Invalid timer plan. Please copy a valid timer plan and try again.');
+                return;
+            }
+
+            // Generate new ID to avoid conflicts
+            const newTimer = { ...importedTimer, id: crypto.randomUUID() };
+
+            // Use the onImport callback to handle the import
+            onImport(newTimer);
+
+            alert(`Timer "${newTimer.name}" imported successfully!`);
+        } catch (error) {
+            console.error('Error pasting from clipboard:', error);
+            alert('Failed to paste timer. Make sure you have copied a valid timer plan to your clipboard.');
         }
     };
 
@@ -1414,8 +1464,18 @@ const ConfigurationScreen = ({
                             Import
                         </IconButton>
                     </div>
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        <IconButton onClick={handleCopyToClipboard} variant="info" className="!text-sm">
+                            📋 Copy Plan
+                        </IconButton>
+                        <IconButton onClick={handlePasteFromClipboard} variant="info" className="!text-sm">
+                            📋 Paste Plan
+                        </IconButton>
+                    </div>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
                         Export/Share to send timer to clients. Import to load a shared timer.
+                        <br />
+                        <strong>Safari Mobile:</strong> Use Copy/Paste Plan buttons - copy the timer, share via text/email, then paste to import.
                     </p>
                 </CollapsibleSection>
             </div>
