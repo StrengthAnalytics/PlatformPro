@@ -381,16 +381,6 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
     if (document.visibilityState === 'visible') {
       timerRef.current = window.setInterval(() => {
         setTimeLeft(prev => {
-          // Speak CURRENT number while it's still visible, then countdown
-          // This ensures user hears the number that's currently on screen
-          if (alertTimings.includes(prev)) {
-            if (useSpeech) {
-              speechManager.speak(String(prev), alertVolume, voiceGender);
-            } else {
-              audioManager.playSound('long', alertVolume);
-            }
-          }
-
           if (prev <= 1) {
             // Always play the extra-long beep at 0 seconds, even in voice mode
             audioManager.playSound('extra-long', alertVolume);
@@ -401,8 +391,19 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
         });
       }, 1000);
     }
-  }, [stopTicking, nextInterval, alertTimings, alertVolume, useSpeech, voiceGender]);
-  
+  }, [stopTicking, nextInterval, alertVolume]);
+
+  // Effect to trigger speech/beeps immediately when timeLeft changes
+  useEffect(() => {
+    if (status === 'running' && alertTimings.includes(timeLeft)) {
+      if (useSpeech) {
+        speechManager.speak(String(timeLeft), alertVolume, voiceGender);
+      } else {
+        audioManager.playSound('long', alertVolume);
+      }
+    }
+  }, [timeLeft, status, alertTimings, useSpeech, alertVolume, voiceGender]);
+
   // Main effect to control the timer based on status
   useEffect(() => {
     if (status === 'running') {
@@ -774,16 +775,6 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
 
         timerRef.current = window.setInterval(() => {
             setTimeLeft(prev => {
-                // Speak CURRENT number while it's still visible, then countdown
-                // This ensures user hears the number that's currently on screen
-                if (alertTimings.includes(prev)) {
-                    if (useSpeech) {
-                        speechManager.speak(String(prev), alertVolume, voiceGender);
-                    } else {
-                        audioManager.playSound('long', alertVolume);
-                    }
-                }
-
                 if (prev <= 1) {
                     audioManager.playSound('extra-long', alertVolume);
                     if (currentSet >= sets) {
@@ -800,7 +791,18 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
             });
         }, 1000);
         return () => { if (timerRef.current) clearInterval(timerRef.current) };
-    }, [status, restTime, alertTimings, currentSet, sets, onComplete, alertVolume, useSpeech, voiceGender]);
+    }, [status, restTime, currentSet, sets, onComplete, alertVolume]);
+
+    // Effect to trigger speech/beeps immediately when timeLeft changes
+    useEffect(() => {
+        if (status === 'running' && alertTimings.includes(timeLeft)) {
+            if (useSpeech) {
+                speechManager.speak(String(timeLeft), alertVolume, voiceGender);
+            } else {
+                audioManager.playSound('long', alertVolume);
+            }
+        }
+    }, [timeLeft, status, alertTimings, useSpeech, alertVolume, voiceGender]);
     
     useEffect(() => {
         const handleVisibilityChange = () => {
