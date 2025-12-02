@@ -381,9 +381,11 @@ const useTimer = ({ intervals, rounds, onComplete, onIntervalChange, alertTiming
     if (document.visibilityState === 'visible') {
       timerRef.current = window.setInterval(() => {
         setTimeLeft(prev => {
-          if (alertTimings.includes(prev)) {
+          // Trigger speech/beep 1 second early to compensate for speech synthesis latency
+          // When timer shows 4, we trigger speech for "3" so it plays when display updates to 3
+          if (alertTimings.includes(prev - 1)) {
             if (useSpeech) {
-              speechManager.speak(String(prev), alertVolume, voiceGender);
+              speechManager.speak(String(prev - 1), alertVolume, voiceGender);
             } else {
               audioManager.playSound('long', alertVolume);
             }
@@ -771,9 +773,11 @@ const ManualRestTimer = ({ sets, restTime, onExit, onComplete, alertTimings, ale
 
         timerRef.current = window.setInterval(() => {
             setTimeLeft(prev => {
-                if (alertTimings.includes(prev)) {
+                // Trigger speech/beep 1 second early to compensate for speech synthesis latency
+                // When timer shows 4, we trigger speech for "3" so it plays when display updates to 3
+                if (alertTimings.includes(prev - 1)) {
                     if (useSpeech) {
-                        speechManager.speak(String(prev), alertVolume, voiceGender);
+                        speechManager.speak(String(prev - 1), alertVolume, voiceGender);
                     } else {
                         audioManager.playSound('long', alertVolume);
                     }
